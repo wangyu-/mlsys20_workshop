@@ -54,7 +54,7 @@ Model::Model(bool training)
 
 float Model::measure_oplist_runtime(const std::vector<OpBase*>& opBaseList)
 {
-  const int num_runs = 10;
+  const int num_runs = 100;
   // warmup
   for (int i = 0; i < opBaseList.size(); i++)
     opBaseList[i]->forward();

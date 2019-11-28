@@ -131,6 +131,7 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   pool->runtime = milliseconds / REPEAT_TIMES;
+  printf("<measure:pool>\n");
 #ifdef VERBOSE
   printf("measure[Pool2D]: i(%d %d %d %d) k(%d %d) s(%d %d) p(%d %d) cost(%.4lf)\n",
          BATCH_SIZE, inputC, inputH, inputW, pool->kernelH, pool->kernelW,

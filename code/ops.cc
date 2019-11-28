@@ -148,9 +148,9 @@ void Graph::export_op(ofstream &file_stream, Op &op)
 {
   file_stream << op.guid << std::endl;
 
-  file_stream << op.ptr->type << std::endl;
+  file_stream <<"<type>"<<op.ptr->type << std::endl;
 
-  std::string deps_string;
+  std::string deps_string="<dep>";
   std::set<Edge, EdgeCompare> inList = inEdges[op];
   std::set<Edge, EdgeCompare>::const_iterator it;
   int i = 0;
@@ -318,6 +318,26 @@ bool Graph::check_correctness(void)
   }
   return okay;
 }
+/*
+float Graph::total_cost(void)
+{
+  if (totalCost > 0) return totalCost;
+  std::map<Op, std::set<Edge, EdgeCompare>, OpCompare>::const_iterator it;
+  float total = 1000000000;
+
+  for (it = inEdges.begin(); it != inEdges.end(); it++) {
+    if (it->first.ptr != NULL) 
+    {
+          float exe_time = 0, flops = 0, mem_acc = 0;
+    int num_kernels = 0;
+      it->first.ptr->collect_costs(exe_time, flops, mem_acc, num_kernels);
+      total+=-mem_acc;
+    }
+    //total += it->first.ptr->runtime;
+  }
+  totalCost = total;
+  return total;
+}*/
 
 float Graph::total_cost(void)
 {

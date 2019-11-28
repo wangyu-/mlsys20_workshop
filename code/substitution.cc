@@ -333,8 +333,8 @@ Graph* GraphXfer::create_new_graph(Graph* graph)
 void GraphXfer::print_edge_weights(const std::map<Edge, int, EdgeCompare>& edgeWeights)
 {
   std::map<Edge, int, EdgeCompare>::const_iterator it;
-  for (it = edgeWeights.begin(); it != edgeWeights.end(); it ++) {
+  /*for (it = edgeWeights.begin(); it != edgeWeights.end(); it ++) {
     printf("in-edge: opGuid(%zu) idx(%zu) weight(%d)\n",
            it->first.op.guid, it->first.idx, it->second);
-  }
+  }*/
 }

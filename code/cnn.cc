@@ -49,6 +49,7 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
   xfers.push_back(create_merge_conv_xfer(model));
   xfers.push_back(create_exclusive_concat_xfer(model));
   xfers.push_back(create_resnet_merge_xfer(model));
+  xfers.push_back(create_enlarge_conv_xfer(model));
 
   std::priority_queue<Graph*, std::vector<Graph*>, GraphCompare> candidates;
   std::set<size_t> hashmap;
@@ -79,10 +80,10 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
       // TODO: free all remaining candidates when budget exhausted 
       break;
     }
-#ifdef VERBOSE
-    if (counter % 100 == 0)
+//#ifdef VERBOSE
+    if (counter % 10 == 0)
       printf("[%d] cost = %.4lf bestCost = %.4lf candidates.size() = %zu\n", counter, subGraph->total_cost(), bestCost, candidates.size());
-#endif
+//#endif
     counter ++;
     for (int i = 0; i < xfers.size(); i++)
       xfers[i]->run(0, subGraph, candidates, hashmap, bestCost * alpha, edgeWeights, firstGraph);
@@ -194,7 +195,7 @@ int main(int argc, char **argv)
   bool optimize = true;
   bool export_graph = false;
   int budget = 300; // 300 candidates
-  float alpha = 1.01;
+  float alpha = 1.05;
   DNNModel dnn = None;
   std::string export_file_name;
   parse_args(optimize, export_graph, alpha, budget, export_file_name, dnn, argc, argv);
