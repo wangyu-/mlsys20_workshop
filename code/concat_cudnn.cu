@@ -64,7 +64,8 @@ void Model::measure_concat_cost(Concat* concat)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   concat->runtime = milliseconds / REPEAT_TIMES;
-  printf("<measure:concat>\n");
+  printf("<measure>, %s, ",export_op_key(*concat).c_str());
+  printf("runtime=%f\n",concat->runtime);
 #ifdef VERBOSE
   printf("measure[Concat]: cost(%.4lf)\n", concat->runtime);
 #endif

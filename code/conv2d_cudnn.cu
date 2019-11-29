@@ -179,7 +179,8 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   conv->runtime = milliseconds / REPEAT_TIMES;
-  printf("<measure:conv>\n");
+  printf("<measure>, %s, ",export_op_key(*conv).c_str());
+  printf("runtime=%f\n",conv->runtime);
 #ifdef VERBOSE
   printf("measure[Conv2D]: i(%d %d %d %d) o(%d) k(%d %d) s(%d %d) p(%d %d) cost(%.4lf)\n",
          BATCH_SIZE, inputC, inputH, inputW, outputC, conv->kernelH, conv->kernelW,

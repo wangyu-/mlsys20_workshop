@@ -48,7 +48,7 @@ using namespace std;
 #define MAX_NUM_OUTPUTS 6
 #define BATCH_SIZE 1
 #define MAX_TENSOR_SIZE 128 * 1024 * 1024 // 128MB
-#define REPEAT_TIMES 8
+#define REPEAT_TIMES 100
 #define CONCAT_KEY_LENGTH (MAX_NUM_INPUTS + 5)
 #define SPLIT_KEY_LENGTH (MAX_NUM_OUTPUTS + 4)
 const size_t WORK_SPACE_SIZE = (size_t)2 * 1024 * 1024 * 1024; // 2GB
@@ -567,5 +567,7 @@ public:
   // variables for batch norm
   DATATYPE *scalePtr, *runningMean, *runningVar, *saveMean, *saveVar;
 };
+
+string export_op_key(OpBase &ob);
 
 #endif

@@ -138,6 +138,136 @@ void Graph::export_to_file(std::string file_name)
   assert(opList.size() == inEdges.size());
 }
 
+#include <sstream>
+string ob_to_name(OpBase &ob)
+{
+	switch(ob.type)
+	{
+    		case OpBase::OP_CONV2D:
+			return "conv";
+    		case OpBase::OP_POOL2D_MAX:
+			return "pool_max";
+    		case OpBase::OP_POOL2D_AVG:
+			return "pool_avg";
+    		case OpBase::OP_SPLIT:
+			return "split";
+		case OpBase::OP_CONCAT:
+			return "concat";
+		case OpBase::OP_EW_ADD:
+			return "ew_add";
+		case OpBase::OP_EW_MUL:
+			return "ew_mul";
+		case OpBase::OP_RELU:
+			return "relu";
+		case OpBase::OP_SIGMOID:
+			return "sigmoid";
+		case OpBase::OP_BATCHNORM:
+			return "batch_norm";
+		case OpBase::OP_NOOP:
+			return "noop";
+		case OpBase::OP_MATMUL: // This doesn't seem to be implemented in run either
+			return "matmul";
+	}	
+	return "<null>";
+}
+string export_op_key(OpBase &ob)
+{
+  stringstream file_stream;
+  Op op;
+  op.ptr=&ob;
+
+  //file_stream << op.guid << std::endl;
+
+  //file_stream <<"<type>"<<op.ptr->type << std::endl;
+  file_stream<<ob_to_name(ob)<<",";
+
+  switch (op.ptr->type) {
+    case OpBase::OP_CONV2D:
+    { 
+      Conv2D* conv = (Conv2D*) op.ptr;
+      Tensor t = conv->inputs[0];
+
+      file_stream << t.dim[0] << ','; // 0
+      file_stream << t.dim[1] << ','; // 1
+      file_stream << t.dim[2] << ','; // 2
+      file_stream << t.dim[3] << ','; // 3
+      file_stream << conv->outputC << ','; // 4
+      file_stream << conv->kernelH << ','; // 5
+      file_stream << conv->kernelW << ','; // 6
+      file_stream << conv->strideH << ','; // 7
+      file_stream << conv->strideW << ','; // 8
+      file_stream << conv->padH << ','; // 9
+      file_stream << conv->padW << ','; // 10
+      file_stream << conv->relu; // 11
+      break;
+    }
+    case OpBase::OP_POOL2D_MAX:
+    case OpBase::OP_POOL2D_AVG:
+    {
+
+      Pool2D* pool = (Pool2D*) op.ptr;
+      Tensor t = pool->inputs[0];
+
+      file_stream << t.dim[0] << ','; // 0
+      file_stream << t.dim[1] << ','; // 1
+      file_stream << t.dim[2] << ','; // 2
+      file_stream << t.dim[3] << ','; // 3
+      file_stream << pool->type << ','; // 4
+      file_stream << pool->kernelH << ','; // 5
+      file_stream << pool->kernelW << ','; // 6
+      file_stream << pool->strideH << ','; // 7
+      file_stream << pool->strideW << ','; // 8
+      file_stream << pool->padH << ','; // 9
+      file_stream << pool->padW << ','; // 10
+      file_stream << pool->relu; // 11
+      break;
+    }
+    case OpBase::OP_SPLIT:
+    {
+      Split* split = (Split*) op.ptr;
+      for (int i = 0; i < split->numOutputs; i++)
+      {
+        file_stream << split->channels[i];
+        if (i < split->numOutputs - 1)
+        {
+          file_stream << ',';
+        }
+      }
+      break;
+    }
+    case OpBase::OP_CONCAT:
+    case OpBase::OP_EW_ADD:
+    case OpBase::OP_EW_MUL:
+    case OpBase::OP_RELU:
+    case OpBase::OP_SIGMOID:
+    case OpBase::OP_BATCHNORM:
+    case OpBase::OP_NOOP:
+    {
+      Tensor t = op.ptr->inputs[0];
+      file_stream << t.dim[0] << ','; // 0
+      file_stream << t.dim[1] << ','; // 1
+      file_stream << t.dim[2] << ','; // 2
+      file_stream << t.dim[3]; // 3
+      break;
+    }
+    case OpBase::OP_MATMUL: // This doesn't seem to be implemented in run either
+    {
+      Matmul* matmul = (Matmul*) op.ptr;
+      Tensor t = matmul->inputs[0];
+
+      file_stream << t.dim[0] << ','; // 0
+      file_stream << t.dim[1] << ','; // 1
+      file_stream << t.dim[2] << ','; // 2
+      file_stream << matmul->outputC << ','; // 3
+      file_stream << matmul->actiMode; // 4
+      break;
+    }
+    default:
+      assert(false);
+  }
+  //file_stream << std::endl;
+  return file_stream.str();
+}
 /* Exports an operator with the following format:
  * guid
  * type

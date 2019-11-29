@@ -100,7 +100,8 @@ void Model::measure_element_cost(Element* ele)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   ele->runtime = milliseconds / REPEAT_TIMES;
-  printf("<measure:elem>\n");
+  printf("<measure>, %s, ",export_op_key(*ele).c_str());
+  printf("runtime=%f\n",ele->runtime);
 #ifdef VERBOSE
   printf("measure[Element]: i(%d %d %d %d) type(%d) cost(%.4lf)\n",
          ele->inputs[0].dim[0], ele->inputs[0].dim[1], ele->inputs[0].dim[2],
