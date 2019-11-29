@@ -48,7 +48,8 @@ using namespace std;
 #define MAX_NUM_OUTPUTS 6
 #define BATCH_SIZE 1
 #define MAX_TENSOR_SIZE 128 * 1024 * 1024 // 128MB
-#define REPEAT_TIMES 10000
+#define REPEAT_TIMES 20000
+#define CHECK_TIME_PERIOD 5000
 #define CONCAT_KEY_LENGTH (MAX_NUM_INPUTS + 5)
 #define SPLIT_KEY_LENGTH (MAX_NUM_OUTPUTS + 4)
 const size_t WORK_SPACE_SIZE = (size_t)2 * 1024 * 1024 * 1024; // 2GB
@@ -148,7 +149,9 @@ public:
   int numInputs, numOutputs;
   OpType type;
   Model *model;
-  float runtime;
+  double runtime;
+  double power=0;
+  double energy=0;
 };
 
 class Graph {

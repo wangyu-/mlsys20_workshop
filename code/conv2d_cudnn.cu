@@ -178,9 +178,12 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  conv->runtime = milliseconds / REPEAT_TIMES;
+  double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
   
-  double times=measure_time/conv->runtime;
+  double times=measure_time/runtime;
+  string key=export_op_key(*conv)+",<"+to_string(conv->fwdAlgo)+">";
+  printf("<pre_measure>, %s\n",key.c_str());
+
   start_check_power();
   for (int i = 0; i< times; i++) {
     if (conv->relu) {
@@ -200,8 +203,10 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   }
   double power=finish_check_power();
 
-  printf("<measure>, %s, ",export_op_key(*conv).c_str());
-  printf("runtime=%f power=%f\n",conv->runtime,power);
+  printf("<measure>, %s, ",key.c_str());
+  printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
+  conv->power=power;
+  conv->energy=power*runtime;
 #ifdef VERBOSE
   printf("measure[Conv2D]: i(%d %d %d %d) o(%d) k(%d %d) s(%d %d) p(%d %d) cost(%.4lf)\n",
          BATCH_SIZE, inputC, inputH, inputW, outputC, conv->kernelH, conv->kernelW,

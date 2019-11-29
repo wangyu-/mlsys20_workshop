@@ -99,9 +99,23 @@ void Model::measure_element_cost(Element* ele)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  ele->runtime = milliseconds / REPEAT_TIMES;
-  printf("<measure>, %s, ",export_op_key(*ele).c_str());
-  printf("runtime=%f\n",ele->runtime);
+  double runtime=ele->runtime = milliseconds / REPEAT_TIMES;
+
+  double times=measure_time/runtime;
+  string key=export_op_key(*ele);
+  printf("<pre_measure>, %s\n",key.c_str());
+  
+  start_check_power();
+  for (int i = 0; i < times; i++) {
+    checkCUDNN(cudnnOpTensor(dnn, opDesc, &alpha, inputTensor, inputPtr,
+        &alpha, inputTensor, filterPtr, &beta, inputTensor, outputPtr));
+  }
+  double power=finish_check_power();
+
+  printf("<measure>, %s, ",key.c_str());
+  printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
+  ele->power=power;
+  ele->energy=power*runtime;
 #ifdef VERBOSE
   printf("measure[Element]: i(%d %d %d %d) type(%d) cost(%.4lf)\n",
          ele->inputs[0].dim[0], ele->inputs[0].dim[1], ele->inputs[0].dim[2],

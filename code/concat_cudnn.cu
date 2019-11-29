@@ -63,9 +63,34 @@ void Model::measure_concat_cost(Concat* concat)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  concat->runtime = milliseconds / REPEAT_TIMES;
-  printf("<measure>, %s, ",export_op_key(*concat).c_str());
-  printf("runtime=%f\n",concat->runtime);
+  double runtime=concat->runtime = milliseconds / REPEAT_TIMES;
+
+  //double times=measure_time/runtime;
+  string key=export_op_key(*concat);
+  printf("<pre_measure>, %s\n",key.c_str());
+
+  start_check_power();
+
+  double current_time=get_current_time();
+  for (int i = 0; ; i++) {
+    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
+    for (int j = 0; j < concat->numInputs; j++) {
+      if (concat->needCopy[j]) {
+        size_t size = sizeof(DATATYPE);
+        for (int k = 0; k < concat->inputs[j].numDim; k++)
+          size *= concat->inputs[j].dim[k];
+        checkCUDA(cudaMemcpyAsync(outputPtr, inputPtr, size,
+                                  cudaMemcpyDeviceToDevice));
+      }
+    }
+  }
+  double power=finish_check_power();
+   
+  printf("<measure>, %s, ",key.c_str());
+  printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
+  concat->power=power;
+  concat->energy=power*runtime;
+
 #ifdef VERBOSE
   printf("measure[Concat]: cost(%.4lf)\n", concat->runtime);
 #endif

@@ -130,9 +130,29 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  pool->runtime = milliseconds / REPEAT_TIMES;
-  printf("<measure>, %s, ",export_op_key(*pool).c_str());
-  printf("runtime=%f\n",pool->runtime);
+  double runtime=pool->runtime = milliseconds / REPEAT_TIMES;
+
+  double times=measure_time/runtime;
+  string key=export_op_key(*pool);
+  printf("<pre_measure>, %s\n",key.c_str());
+
+  start_check_power();
+  for (int i = 0; i < times; i++) {
+    checkCUDNN(cudnnPoolingForward(dnn, poolDesc,
+        &alpha, inputTensor, inputPtr,
+        &beta, outputTensor, outputPtr));
+    if (pool->relu) {
+      checkCUDNN(cudnnActivationForward(dnn, actiDesc,
+          &alpha, outputTensor, outputPtr,
+          &beta, outputTensor, outputPtr));
+    }
+  }
+  double power=finish_check_power();
+
+  printf("<measure>, %s, ",key.c_str());
+  printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
+  pool->power=power;
+  pool->energy=power*runtime;
 #ifdef VERBOSE
   printf("measure[Pool2D]: i(%d %d %d %d) k(%d %d) s(%d %d) p(%d %d) cost(%.4lf)\n",
          BATCH_SIZE, inputC, inputH, inputW, pool->kernelH, pool->kernelW,
