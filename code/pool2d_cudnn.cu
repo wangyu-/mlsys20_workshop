@@ -132,12 +132,13 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=pool->runtime = milliseconds / REPEAT_TIMES;
 
-  double times=measure_time/runtime;
   string key=export_op_key(*pool);
   printf("<pre_measure>, %s\n",key.c_str());
 
+  double current_time=get_current_time();
   start_check_power();
-  for (int i = 0; i < times; i++) {
+  for (int i = 0; ; i++) {
+    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     checkCUDNN(cudnnPoolingForward(dnn, poolDesc,
         &alpha, inputTensor, inputPtr,
         &beta, outputTensor, outputPtr));

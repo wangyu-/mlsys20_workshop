@@ -101,12 +101,13 @@ void Model::measure_element_cost(Element* ele)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=ele->runtime = milliseconds / REPEAT_TIMES;
 
-  double times=measure_time/runtime;
   string key=export_op_key(*ele);
   printf("<pre_measure>, %s\n",key.c_str());
   
+  double current_time=get_current_time();
   start_check_power();
-  for (int i = 0; i < times; i++) {
+  for (int i = 0; ; i++) {
+    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     checkCUDNN(cudnnOpTensor(dnn, opDesc, &alpha, inputTensor, inputPtr,
         &alpha, inputTensor, filterPtr, &beta, inputTensor, outputPtr));
   }

@@ -67,11 +67,15 @@ void Model::measure_concat_cost(Concat* concat)
 
   //double times=measure_time/runtime;
   string key=export_op_key(*concat);
+  for (int j = 0; j < concat->numInputs; j++) {
+	  if (concat->needCopy[j]) key+=",<1>";
+	  else key+=",<0>";
+	  }
   printf("<pre_measure>, %s\n",key.c_str());
 
-  start_check_power();
 
   double current_time=get_current_time();
+  start_check_power();
   for (int i = 0; ; i++) {
     if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     for (int j = 0; j < concat->numInputs; j++) {

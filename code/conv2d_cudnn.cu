@@ -180,12 +180,13 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
   
-  double times=measure_time/runtime;
   string key=export_op_key(*conv)+",<"+to_string(conv->fwdAlgo)+">";
   printf("<pre_measure>, %s\n",key.c_str());
 
+  double current_time=get_current_time();
   start_check_power();
-  for (int i = 0; i< times; i++) {
+  for (int i = 0; ; i++) {
+    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     if (conv->relu) {
       checkCUDNN(cudnnConvolutionBiasActivationForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
