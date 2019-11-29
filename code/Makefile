@@ -8,7 +8,7 @@ CXXFLAGS_GPU = $(CXXFLAGS_COM) -DUSE_CUDNN -O2 -arch=compute_60 -code=sm_60
 CXXFLAGS_CPU = $(CXXFLAGS_COM) -DUSE_MKL -O3 -march=native -I$(MKLPATH)/include
 CXXFLAGS_TRT = $(CXXFLAGS_GPU) -DTRT -I$(TRTPATH)/include
 
-LDFLAGS_GPU = -lcudnn -lcublas
+LDFLAGS_GPU = -lcudnn -lcublas -lpthread
 LDFLAGS_CPU = -L$(MKLPATH)/lib -lmklml_intel -liomp5
 LDFLAGS_TRT = $(LDFLAGS_GPU) -L$(TRTPATH)/lib -lnvinfer
 

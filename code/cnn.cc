@@ -21,6 +21,70 @@
 #include "resnet.h"
 #include "sru.h"
 #include <cstring> 
+#include <pthread.h>
+#include <unistd.h>
+#include <stdio.h>
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+vector<double> power_vec;
+bool check_power_stop=1;
+void *check_power(void *)
+{
+	while(1)
+	{
+		while(check_power_stop==1)
+			usleep(10*1000);
+
+		pthread_mutex_lock(&mutex);
+		
+		sleep(3);//time before measure
+
+		while(1)
+		{
+			int power=-1;
+			FILE *fp;
+			fp = popen("./measure_power.sh","r");
+			assert(fp!=0);
+			char buf[256];
+			while(fgets(buf,sizeof(buf),fp) != NULL){
+				power = stoi(buf);
+			}
+			if(check_power_stop==1) break;
+			power_vec.push_back(power); 
+			//printf("<%d>\n",power);
+			usleep(300*1000);
+		}
+		pthread_mutex_unlock(&mutex);
+	}
+}
+void before_check_power()
+{
+	pthread_mutex_lock(&mutex);
+}
+void start_check_power()
+{
+	check_power_stop=0;
+	
+	pthread_mutex_unlock(&mutex);
+}
+
+double finish_check_power()
+{	
+	check_power_stop=1;
+	pthread_mutex_lock(&mutex);
+	double sum=0,avg;
+	for(int i=0;i<power_vec.size();i++)
+	{
+		sum+=power_vec[i];
+		printf("%.2f,",power_vec[i]);
+	}
+	printf("\n");
+	assert(!power_vec.empty());
+	avg=sum/power_vec.size();
+	power_vec.clear();
+	return avg;
+}
 
 int example(Model* model)
 {
@@ -201,10 +265,28 @@ void parse_args(bool &optimize,
 
 int main(int argc, char **argv)
 {
+  before_check_power();
+  pthread_t pid;
+  int ret = pthread_create(&pid,NULL,check_power,NULL);
+  if(ret != 0){
+    printf("create pthread error\n");
+    exit(1);
+  }
+
   bool optimize = true;
   bool export_graph = false;
   int budget = 300; // 300 candidates
   float alpha = 1.05;
+/*
+  start_check_power();
+  sleep(5);
+  finish_check_power();
+
+  start_check_power();
+  sleep(5);
+  finish_check_power();
+*/
+
   DNNModel dnn = None;
   std::string export_file_name;
   parse_args(optimize, export_graph, alpha, budget, export_file_name, dnn, argc, argv);

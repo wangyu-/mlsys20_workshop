@@ -48,7 +48,7 @@ using namespace std;
 #define MAX_NUM_OUTPUTS 6
 #define BATCH_SIZE 1
 #define MAX_TENSOR_SIZE 128 * 1024 * 1024 // 128MB
-#define REPEAT_TIMES 100
+#define REPEAT_TIMES 10000
 #define CONCAT_KEY_LENGTH (MAX_NUM_INPUTS + 5)
 #define SPLIT_KEY_LENGTH (MAX_NUM_OUTPUTS + 4)
 const size_t WORK_SPACE_SIZE = (size_t)2 * 1024 * 1024 * 1024; // 2GB
@@ -569,5 +569,18 @@ public:
 };
 
 string export_op_key(OpBase &ob);
+
+void start_check_power();
+
+double finish_check_power();
+
+inline long long get_current_time()
+{
+	timespec tmp_time;
+	clock_gettime(CLOCK_MONOTONIC, &tmp_time);
+	return tmp_time.tv_sec*1000ll+tmp_time.tv_nsec/(1000*1000l);
+}
+
+const int measure_time=8*1000;
 
 #endif

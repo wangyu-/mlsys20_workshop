@@ -179,8 +179,29 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   conv->runtime = milliseconds / REPEAT_TIMES;
+  
+  double times=measure_time/conv->runtime;
+  start_check_power();
+  for (int i = 0; i< times; i++) {
+    if (conv->relu) {
+      checkCUDNN(cudnnConvolutionBiasActivationForward(
+          dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
+          convDesc, conv->fwdAlgo, workSpace, workSpaceSize,
+          &beta, outputTensor, outputPtr, biasTensor, biasPtr, actiDesc,
+          outputTensor, outputPtr));
+    } else {
+      checkCUDNN(cudnnConvolutionForward(
+          dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
+          convDesc, conv->fwdAlgo, workSpace, workSpaceSize,
+          &beta, outputTensor, outputPtr));
+      checkCUDNN(cudnnAddTensor(dnn, &alpha, biasTensor, biasPtr,
+          &alpha, outputTensor, outputPtr));
+    }
+  }
+  double power=finish_check_power();
+
   printf("<measure>, %s, ",export_op_key(*conv).c_str());
-  printf("runtime=%f\n",conv->runtime);
+  printf("runtime=%f power=%f\n",conv->runtime,power);
 #ifdef VERBOSE
   printf("measure[Conv2D]: i(%d %d %d %d) o(%d) k(%d %d) s(%d %d) p(%d %d) cost(%.4lf)\n",
          BATCH_SIZE, inputC, inputH, inputW, outputC, conv->kernelH, conv->kernelW,
