@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <signal.h>
+#include <atomic>
 
 map<string,value_t> mp;
 ofstream db_output;
@@ -39,7 +40,8 @@ void my_handler(sig_atomic_t  s){
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 vector<double> power_vec;
-bool check_power_stop=1;
+std::atomic<int> check_power_stop(1);
+//bool check_power_stop=1;
 void *check_power(void *)
 {
 	while(1)
