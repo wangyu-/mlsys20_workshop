@@ -83,11 +83,11 @@ void Model::measure_concat_cost(Concat* concat)
   //double runtime=concat->runtime = milliseconds / REPEAT_TIMES;
 
 
-  int times=0;
+  long times=0;
   double current_time=get_current_time();
   double current_time2;
   start_check_power();
-  for (int i = 0; ; i++) {
+  for (int i = 0; ; i++,times++) {
     if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
     for (int j = 0; j < concat->numInputs; j++) {
       if (concat->needCopy[j]) {

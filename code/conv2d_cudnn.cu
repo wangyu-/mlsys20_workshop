@@ -200,7 +200,7 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   //double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
   
 
-  int times=0;
+  long times=0;
   double current_time=get_current_time();
   double current_time2;
   start_check_power();

@@ -145,7 +145,7 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   //double runtime=pool->runtime = milliseconds / REPEAT_TIMES;
 
-  int times=0;
+  long times=0;
   double current_time=get_current_time();
   double current_time2;
   start_check_power();
