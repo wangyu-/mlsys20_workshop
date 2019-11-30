@@ -127,7 +127,6 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   assert(inputSize < MAX_TENSOR_SIZE);
   assert(outputSize < MAX_TENSOR_SIZE);
 
-/*
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -144,8 +143,8 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  double runtime=pool->runtime = milliseconds / REPEAT_TIMES;
-*/
+  //double runtime=pool->runtime = milliseconds / REPEAT_TIMES;
+
   int times=0;
   double current_time=get_current_time();
   double current_time2;

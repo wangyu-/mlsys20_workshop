@@ -62,7 +62,7 @@ void Model::measure_concat_cost(Concat* concat)
         return ;
 
   }
-/*
+
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -80,9 +80,7 @@ void Model::measure_concat_cost(Concat* concat)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  double runtime=concat->runtime = milliseconds / REPEAT_TIMES;
-*/
-  //double times=measure_time/runtime;
+  //double runtime=concat->runtime = milliseconds / REPEAT_TIMES;
 
 
   int times=0;

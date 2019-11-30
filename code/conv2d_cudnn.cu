@@ -175,7 +175,6 @@ void Model::measure_conv2d_cost(Conv2D* conv)
 	  continue ;
 
   }
-  /*
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -198,7 +197,7 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  double runtime=conv->runtime = milliseconds / REPEAT_TIMES;*/
+  //double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
   
 
   int times=0;

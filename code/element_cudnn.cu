@@ -104,7 +104,6 @@ void Model::measure_element_cost(Element* ele)
   checkCUDNN(cudnnSetOpTensorDescriptor(opDesc, opType, CUDNN_DATA_FLOAT,
       CUDNN_NOT_PROPAGATE_NAN));
 
-  /*
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -115,8 +114,8 @@ void Model::measure_element_cost(Element* ele)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  double runtime=ele->runtime = milliseconds / REPEAT_TIMES;
-*/
+//  double runtime=ele->runtime = milliseconds / REPEAT_TIMES;
+
   int times=0; 
   double current_time=get_current_time();
   double current_time2; 
