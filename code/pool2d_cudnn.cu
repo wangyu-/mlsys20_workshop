@@ -82,6 +82,18 @@ void Pool2D::forward(void)
 
 void Model::measure_pool2d_cost(Pool2D* pool)
 {
+  string key=export_op_key(*pool);
+  //printf("<pre_measure>, %s\n",key.c_str());
+  if(mp.find(key)!=mp.end())
+  {
+	  pool->runtime=mp[key].runtime;
+	  pool->power=mp[key].power;
+          pool->energy=mp[key].power*mp[key].runtime;
+	  printf("<found from mp>, %s, ",key.c_str());
+	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	return ;
+     
+  }
   const float alpha = 1.0f;
   const float beta = 0.0f;
   int inputC = pool->inputs[0].dim[1];
@@ -132,8 +144,6 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=pool->runtime = milliseconds / REPEAT_TIMES;
 
-  string key=export_op_key(*pool);
-  printf("<pre_measure>, %s\n",key.c_str());
 
   double current_time=get_current_time();
   start_check_power();
@@ -154,6 +164,10 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
   pool->power=power;
   pool->energy=power*runtime;
+  mp[key].runtime=runtime;
+  mp[key].power=power;
+  db_output<<key<<"|"<<runtime<<"|"<<power<<endl;
+  db_output.flush();
 #ifdef VERBOSE
   printf("measure[Pool2D]: i(%d %d %d %d) k(%d %d) s(%d %d) p(%d %d) cost(%.4lf)\n",
          BATCH_SIZE, inputC, inputH, inputW, pool->kernelH, pool->kernelW,

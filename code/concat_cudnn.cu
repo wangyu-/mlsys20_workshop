@@ -46,6 +46,23 @@ void Concat::forward(void)
 
 void Model::measure_concat_cost(Concat* concat)
 {
+  string key=export_op_key(*concat);
+  for (int j = 0; j < concat->numInputs; j++) {
+	  if (concat->needCopy[j]) key+=",<1>";
+	  else key+=",<0>";
+	  }
+  //printf("<pre_measure>, %s\n",key.c_str());
+  if(mp.find(key)!=mp.end())
+  {
+	  concat->runtime=mp[key].runtime;
+	  concat->power=mp[key].power;
+          concat->energy=mp[key].power*mp[key].runtime;
+	  printf("<found from mp>, %s, ",key.c_str());
+	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+        return ;
+
+  }
+
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -66,12 +83,6 @@ void Model::measure_concat_cost(Concat* concat)
   double runtime=concat->runtime = milliseconds / REPEAT_TIMES;
 
   //double times=measure_time/runtime;
-  string key=export_op_key(*concat);
-  for (int j = 0; j < concat->numInputs; j++) {
-	  if (concat->needCopy[j]) key+=",<1>";
-	  else key+=",<0>";
-	  }
-  printf("<pre_measure>, %s\n",key.c_str());
 
 
   double current_time=get_current_time();
@@ -94,6 +105,11 @@ void Model::measure_concat_cost(Concat* concat)
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
   concat->power=power;
   concat->energy=power*runtime;
+  mp[key].runtime=runtime;
+  mp[key].power=power;
+  db_output<<key<<"|"<<runtime<<"|"<<power<<endl;
+  db_output.flush();
+
 
 #ifdef VERBOSE
   printf("measure[Concat]: cost(%.4lf)\n", concat->runtime);

@@ -24,6 +24,17 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <signal.h>
+
+map<string,value_t> mp;
+ofstream db_output;
+
+int about_to_exit=0;
+void my_handler(sig_atomic_t  s){
+	about_to_exit++;
+	printf("Caught signal %d, cnt=%d\n",s,about_to_exit);
+	if(about_to_exit>=3) exit(1);
+}
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -38,7 +49,7 @@ void *check_power(void *)
 
 		pthread_mutex_lock(&mutex);
 		
-		sleep(3);//time before measure
+		sleep(TIME_BEFORE_MEASURE);//time before measure
 
 		while(1)
 		{
@@ -130,6 +141,7 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
   bool firstGraph = true;
   std::map<Edge, int, EdgeCompare> edgeWeights;
   while (!candidates.empty()) {
+    if(about_to_exit) break;
     Graph *subGraph = candidates.top();
     candidates.pop();
     if (subGraph->total_cost() < bestCost) {
@@ -265,6 +277,37 @@ void parse_args(bool &optimize,
 
 int main(int argc, char **argv)
 {
+  ifstream db_input;
+  db_input.open("db.txt");
+  string line;
+  vector<string> db_vec;
+  
+  int cnt=0;
+  while (std::getline(db_input, line))
+  {
+	//printf("%s\n",line.c_str());
+	db_vec.push_back(line);	
+	cnt++;
+  }
+  printf("%d lines read from db.\n",cnt);
+  db_input.close();
+  db_output.open("db.txt");
+  for(int i=0;i<db_vec.size();i++)
+  {
+	auto vec=string_to_vec(db_vec[i].c_str(),"|");
+	string key=vec[0];
+	double runtime=stod(vec[1]);
+	double power=stod(vec[2]);
+
+	mp[key].runtime=runtime;
+	mp[key].power=power;
+	db_output<<key<<"|"<<runtime<<"|"<<power<<endl;
+	db_output.flush();
+	//printf("%s %s %s\n",vec[0].c_str(),vec[1].c_str(),vec[2].c_str());
+  }
+
+  signal (SIGINT,my_handler);
+
   before_check_power();
   pthread_t pid;
   int ret = pthread_create(&pid,NULL,check_power,NULL);

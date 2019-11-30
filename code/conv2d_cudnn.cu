@@ -155,6 +155,7 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   }
 #endif
   conv->fwdAlgo = perfResults[0].algo;
+  //conv->fwdAlgo = (cudnnConvolutionFwdAlgo_t)2;
  
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
@@ -181,7 +182,19 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
   
   string key=export_op_key(*conv)+",<"+to_string(conv->fwdAlgo)+">";
-  printf("<pre_measure>, %s\n",key.c_str());
+  //printf("<pre_measure>, %s\n",key.c_str());
+
+  if(mp.find(key)!=mp.end())
+  {
+	  conv->runtime=mp[key].runtime;
+	  conv->power=mp[key].power;
+          conv->energy=mp[key].power*mp[key].runtime;
+	  printf("<found from mp>, %s, ",key.c_str());
+	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	  return ;
+
+  }
+
 
   double current_time=get_current_time();
   start_check_power();
@@ -208,6 +221,11 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
   conv->power=power;
   conv->energy=power*runtime;
+
+  mp[key].runtime=runtime;
+  mp[key].power=power;
+  db_output<<key<<"|"<<runtime<<"|"<<power<<endl;
+  db_output.flush();
 #ifdef VERBOSE
   printf("measure[Conv2D]: i(%d %d %d %d) o(%d) k(%d %d) s(%d %d) p(%d %d) cost(%.4lf)\n",
          BATCH_SIZE, inputC, inputH, inputW, outputC, conv->kernelH, conv->kernelW,

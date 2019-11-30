@@ -41,6 +41,7 @@ using namespace nvinfer1;
 #include <list>
 #include <iostream>
 #include <fstream>
+#include <string.h>
 using namespace std;
 
 #define MAX_DIM 4
@@ -582,8 +583,32 @@ inline long long get_current_time()
 	clock_gettime(CLOCK_MONOTONIC, &tmp_time);
 	return tmp_time.tv_sec*1000ll+tmp_time.tv_nsec/(1000*1000l);
 }
-
+#define TIME_BEFORE_MEASURE 3
 #define CHECK_TIME_PERIOD 1000
+
 const int measure_time=8*1000;
+extern int about_to_exit;
+
+struct value_t
+{
+	double runtime=0.0;
+	double power=0.0;
+};
+
+extern map<string,value_t> mp;
+extern ofstream db_output;
+
+inline vector<string> string_to_vec(const char * s,const char * sp) {
+	  vector<string> res;
+	  string str=s;
+	  char *p = strtok ((char *)str.c_str(),sp);
+	  while (p != NULL)
+	  {
+		res.push_back(p);
+	    	p = strtok(NULL, sp);
+	  }
+
+	  return res;
+}
 
 #endif

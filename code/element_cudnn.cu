@@ -66,6 +66,21 @@ void Element::forward(void)
 
 void Model::measure_element_cost(Element* ele)
 {
+  string key=export_op_key(*ele);
+  //printf("<pre_measure>, %s\n",key.c_str());
+
+  if(mp.find(key)!=mp.end())
+  {
+	  ele->runtime=mp[key].runtime;
+	  ele->power=mp[key].power;
+          ele->energy=mp[key].power*mp[key].runtime;
+	  printf("<found from mp>, %s, ",key.c_str());
+	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+        return ;
+
+  }
+
+  
   const float alpha = 1.0f;
   const float beta = 0.0f;
   int inputN = ele->inputs[0].dim[0];
@@ -101,8 +116,6 @@ void Model::measure_element_cost(Element* ele)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=ele->runtime = milliseconds / REPEAT_TIMES;
 
-  string key=export_op_key(*ele);
-  printf("<pre_measure>, %s\n",key.c_str());
   
   double current_time=get_current_time();
   start_check_power();
@@ -117,6 +130,10 @@ void Model::measure_element_cost(Element* ele)
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
   ele->power=power;
   ele->energy=power*runtime;
+  mp[key].runtime=runtime;
+  mp[key].power=power;
+  db_output<<key<<"|"<<runtime<<"|"<<power<<endl;
+  db_output.flush();
 #ifdef VERBOSE
   printf("measure[Element]: i(%d %d %d %d) type(%d) cost(%.4lf)\n",
          ele->inputs[0].dim[0], ele->inputs[0].dim[1], ele->inputs[0].dim[2],
