@@ -154,9 +154,28 @@ void Model::measure_conv2d_cost(Conv2D* conv)
            perfResults[i].time, perfResults[i].memory / 1024 / 1024);
   }
 #endif
-  conv->fwdAlgo = perfResults[0].algo;
+
+  for(int idx=cnt-1;idx>=0;idx--)
+{
+  if(int(perfResults[idx].status)!=0) continue;
+  conv->fwdAlgo = perfResults[idx].algo;
+  //printf("<<<%d>>>\n",int(perfResults[idx].status));
   //conv->fwdAlgo = (cudnnConvolutionFwdAlgo_t)2;
  
+  string key=export_op_key(*conv)+",<"+to_string(conv->fwdAlgo)+">";
+  //printf("<pre_measure>, %s\n",key.c_str());
+
+  if(mp.find(key)!=mp.end())
+  {
+	  conv->runtime=mp[key].runtime;
+	  conv->power=mp[key].power;
+          conv->energy=mp[key].power*mp[key].runtime;
+	  printf("<found from mp>, %s, ",key.c_str());
+	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	  continue ;
+
+  }
+  /*
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -179,27 +198,15 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   checkCUDA(cudaEventSynchronize(endEvent));
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
-  double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
+  double runtime=conv->runtime = milliseconds / REPEAT_TIMES;*/
   
-  string key=export_op_key(*conv)+",<"+to_string(conv->fwdAlgo)+">";
-  //printf("<pre_measure>, %s\n",key.c_str());
 
-  if(mp.find(key)!=mp.end())
-  {
-	  conv->runtime=mp[key].runtime;
-	  conv->power=mp[key].power;
-          conv->energy=mp[key].power*mp[key].runtime;
-	  printf("<found from mp>, %s, ",key.c_str());
-	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
-	  return ;
-
-  }
-
-
+  int times=0;
   double current_time=get_current_time();
+  double current_time2;
   start_check_power();
-  for (int i = 0; ; i++) {
-    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
+  for (int i = 0; ; i++,times++) {
+    if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
     if (conv->relu) {
       checkCUDNN(cudnnConvolutionBiasActivationForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
@@ -216,6 +223,7 @@ void Model::measure_conv2d_cost(Conv2D* conv)
     }
   }
   double power=finish_check_power();
+  double runtime=conv->runtime = (current_time2-current_time)/times;
 
   printf("<measure>, %s, ",key.c_str());
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
@@ -231,5 +239,6 @@ void Model::measure_conv2d_cost(Conv2D* conv)
          BATCH_SIZE, inputC, inputH, inputW, outputC, conv->kernelH, conv->kernelW,
          conv->strideH, conv->strideW, conv->padH, conv->padW, conv->runtime);
 #endif
+}
 }
 

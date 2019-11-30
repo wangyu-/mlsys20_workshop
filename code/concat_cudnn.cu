@@ -62,7 +62,7 @@ void Model::measure_concat_cost(Concat* concat)
         return ;
 
   }
-
+/*
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -81,14 +81,16 @@ void Model::measure_concat_cost(Concat* concat)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=concat->runtime = milliseconds / REPEAT_TIMES;
-
+*/
   //double times=measure_time/runtime;
 
 
+  int times=0;
   double current_time=get_current_time();
+  double current_time2;
   start_check_power();
   for (int i = 0; ; i++) {
-    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
+    if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
     for (int j = 0; j < concat->numInputs; j++) {
       if (concat->needCopy[j]) {
         size_t size = sizeof(DATATYPE);
@@ -100,6 +102,7 @@ void Model::measure_concat_cost(Concat* concat)
     }
   }
   double power=finish_check_power();
+  double runtime=concat->runtime = (current_time2-current_time)/times;
    
   printf("<measure>, %s, ",key.c_str());
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);

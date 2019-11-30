@@ -104,6 +104,7 @@ void Model::measure_element_cost(Element* ele)
   checkCUDNN(cudnnSetOpTensorDescriptor(opDesc, opType, CUDNN_DATA_FLOAT,
       CUDNN_NOT_PROPAGATE_NAN));
 
+  /*
   checkCUDA(cudaDeviceSynchronize());
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
@@ -115,16 +116,18 @@ void Model::measure_element_cost(Element* ele)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=ele->runtime = milliseconds / REPEAT_TIMES;
-
-  
+*/
+  int times=0; 
   double current_time=get_current_time();
+  double current_time2; 
   start_check_power();
   for (int i = 0; ; i++) {
-    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
+    if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
     checkCUDNN(cudnnOpTensor(dnn, opDesc, &alpha, inputTensor, inputPtr,
         &alpha, inputTensor, filterPtr, &beta, inputTensor, outputPtr));
   }
   double power=finish_check_power();
+  double runtime=ele->runtime = (current_time2-current_time)/times;
 
   printf("<measure>, %s, ",key.c_str());
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);

@@ -584,7 +584,7 @@ inline long long get_current_time()
 	return tmp_time.tv_sec*1000ll+tmp_time.tv_nsec/(1000*1000l);
 }
 #define TIME_BEFORE_MEASURE 3
-#define CHECK_TIME_PERIOD 1000
+#define CHECK_TIME_PERIOD 200
 
 const int measure_time=8*1000;
 extern int about_to_exit;
