@@ -57,8 +57,11 @@ void Model::measure_concat_cost(Concat* concat)
 	  concat->runtime=mp[key].runtime;
 	  concat->power=mp[key].power;
           concat->energy=mp[key].power*mp[key].runtime;
+	if(!mute)
+	{
 	  printf("<found from mp>, %s, ",key.c_str());
 	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	}
         return ;
 
   }

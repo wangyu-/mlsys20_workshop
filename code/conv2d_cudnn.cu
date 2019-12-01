@@ -178,8 +178,11 @@ void Model::measure_conv2d_cost(Conv2D* conv)
 	  power=mp[key].power;
           energy=mp[key].power*mp[key].runtime;
 	  
-	  printf("<found from mp>, %s, ",key.c_str());
-	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	  if(!mute)
+	  {
+		  printf("<found from mp>, %s, ",key.c_str());
+		  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	  }
 	  goto end;
 
   }
@@ -248,16 +251,9 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   }
   end:
   double cost= cost_func(runtime,power);
-  if(first)
+  if(first||cost<best_cost||use_perf_order)
   {
 	  first=0;
-	  best_cost=cost;	  
-	  conv->runtime=runtime;
-	  conv->power=power;
-	  conv->energy=energy;
-	  conv->fwdAlgo=current_algo;
-  }else if(cost<best_cost)
-  {
 	  best_cost=cost;
 	  conv->runtime=runtime;
 	  conv->power=power;

@@ -164,7 +164,7 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
       break;
     }
 //#ifdef VERBOSE
-    if (counter % 10 == 0)
+    if (counter % 20 == 0)
       printf("[%d] cost = %.4lf bestCost = %.4lf candidates.size() = %zu\n", counter, subGraph->total_cost(), bestCost, candidates.size());
 //#endif
     counter ++;
@@ -211,7 +211,8 @@ DNNModel name_to_model(std::string name)
 	if (name == "rnntc") return RNNTC;
 	assert(false);
 }
-
+int use_perf_order=0;
+vector<double> params;
 void parse_args(bool &optimize,
                 bool &export_graph,
                 float &alpha,
@@ -224,6 +225,20 @@ void parse_args(bool &optimize,
   std::string dnnName;
   for (int i = 1; i < argc; i++)
   {
+    if (!strcmp(argv[i],"--po")) {
+      use_perf_order=1;
+      continue;
+    }
+    if (!strcmp(argv[i],"--params")) {
+      string tmp=argv[++i];
+      auto vec=string_to_vec(tmp.c_str(),",;:|");
+	assert(vec.size()==params_num);
+      for(int i=0;i<vec.size();i++)
+	{
+		params.push_back(  stod(vec[i]) );
+	}
+      continue;
+    }
     if (!strcmp(argv[i],"--noopt")) {
       optimize = false;
       continue;
@@ -340,6 +355,11 @@ int main(int argc, char **argv)
   std::string export_file_name;
   parse_args(optimize, export_graph, alpha, budget, export_file_name, dnn, argc, argv);
   assert(dnn != None);
+  assert(params.size()==params_num);
+  printf("params=");
+  for(int i=0;i<params.size();i++)
+	printf("<%.3f>",params[i]);
+  printf("\n");
   printf("DnnModel(%d) alpha(%.4lf)\n", dnn, alpha);
 
   Model* model = new Model(false/*training*/);

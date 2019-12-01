@@ -74,8 +74,11 @@ void Model::measure_element_cost(Element* ele)
 	  ele->runtime=mp[key].runtime;
 	  ele->power=mp[key].power;
           ele->energy=mp[key].power*mp[key].runtime;
+	if(!mute)
+	{
 	  printf("<found from mp>, %s, ",key.c_str());
 	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	}
         return ;
 
   }

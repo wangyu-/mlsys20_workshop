@@ -89,8 +89,11 @@ void Model::measure_pool2d_cost(Pool2D* pool)
 	  pool->runtime=mp[key].runtime;
 	  pool->power=mp[key].power;
           pool->energy=mp[key].power*mp[key].runtime;
+	if(!mute)
+	{
 	  printf("<found from mp>, %s, ",key.c_str());
 	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
+	}
 	return ;
      
   }

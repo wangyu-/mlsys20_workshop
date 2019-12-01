@@ -583,10 +583,10 @@ inline long long get_current_time()
 	clock_gettime(CLOCK_MONOTONIC, &tmp_time);
 	return tmp_time.tv_sec*1000ll+tmp_time.tv_nsec/(1000*1000l);
 }
-#define TIME_BEFORE_MEASURE 5
+#define TIME_BEFORE_MEASURE 2
 #define CHECK_TIME_PERIOD 500
 
-const int measure_time=10*1000;
+const int measure_time=5*1000;
 extern int about_to_exit;
 
 struct value_t
@@ -610,6 +610,8 @@ inline vector<string> string_to_vec(const char * s,const char * sp) {
 
 	  return res;
 }
+extern int use_perf_order;
+extern vector<double> params;
 double cost_func(double runtime,double power);
 inline double power_no_idle(double power)
 {
@@ -617,5 +619,7 @@ inline double power_no_idle(double power)
 	//if(power<0) power=0;
 	return power;	
 }
+const int params_num=6;
+const int mute=1;
 
 #endif

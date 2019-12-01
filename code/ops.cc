@@ -20,12 +20,12 @@ using namespace std;
 
 double cost_func(double runtime,double power)
 {
-	const double alpha=0.0;
-	const double beta=0.0;
-	const double gamma=1.0;
-	const double normal_a=1.0;
-	const double normal_b=1.0;
-	const double normal_c=1.0;
+	const double alpha=params[0];
+	const double beta=params[1];
+	const double gamma=params[2];
+	const double normal_a=params[3];
+	const double normal_b=params[4];
+	const double normal_c=params[5];
 	power=power_no_idle(power);
 	double energy=runtime*power;
 
