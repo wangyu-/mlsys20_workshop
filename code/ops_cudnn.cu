@@ -74,14 +74,17 @@ float Model::measure_oplist_runtime(const std::vector<OpBase*>& opBaseList)
   double power_time=measure_time/ (runtime);
   
   start_check_power();
+  double t=get_current_time();
   for (int times = 0; times < power_time; times++) {
     for (int i = 0; i < opBaseList.size(); i++)
       opBaseList[i]->forward();
   }
+  t=get_current_time()-t;
   double power=finish_check_power();
-  printf("    Measured power=%f\n",power);
+  double new_run_time=t/power_time;
+  printf("\n    Measured power=%f energy=%f\n",power,new_run_time*power);
   
-  return milliseconds / num_runs;
+  return new_run_time;
 }
 
 void* Model::allocate_memory(size_t size)
