@@ -250,14 +250,15 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   double cost= cost_func(runtime,power);
   if(first)
   {
-	  best_cost=cost;	  
 	  first=0;
+	  best_cost=cost;	  
 	  conv->runtime=runtime;
 	  conv->power=power;
 	  conv->energy=energy;
 	  conv->fwdAlgo=current_algo;
   }else if(cost<best_cost)
   {
+	  best_cost=cost;
 	  conv->runtime=runtime;
 	  conv->power=power;
 	  conv->energy=energy;
