@@ -247,7 +247,7 @@ void Model::measure_conv2d_cost(Conv2D* conv)
 #endif
   }
   end:
-  double cost= cost_func(runtime,power,energy);
+  double cost= cost_func(runtime,power);
   if(first)
   {
 	  best_cost=cost;	  

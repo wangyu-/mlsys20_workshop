@@ -610,7 +610,7 @@ inline vector<string> string_to_vec(const char * s,const char * sp) {
 
 	  return res;
 }
-double cost_func(double runtime,double power,double energy);
+double cost_func(double runtime,double power);
 inline double power_no_idle(double power)
 {
 	//power-=23;

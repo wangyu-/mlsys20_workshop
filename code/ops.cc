@@ -18,15 +18,18 @@
 #include <fstream>
 using namespace std;
 
-double cost_func(double runtime,double power,double energy_dummy)
+double cost_func(double runtime,double power)
 {
 	const double alpha=0.0;
-	const double beta=0.0;
-	const double gamma=1.0;
+	const double beta=1.0;
+	const double gamma=0.0;
+	const double normal_a=1.0;
+	const double normal_b=1.0;
+	const double normal_c=1.0;
 	power=power_no_idle(power);
 	double energy=runtime*power;
 
-	return alpha*runtime +beta*power +gamma*energy;
+	return alpha*runtime/normal_a +beta*power/normal_b +gamma*energy/normal_c;
 }
 
 /*
@@ -484,18 +487,23 @@ float Graph::total_cost(void)
 {
   if (totalCost > 0) return totalCost;
   std::map<Op, std::set<Edge, EdgeCompare>, OpCompare>::const_iterator it;
-  float total = 0.0f;
+  double total_runtime = 0.0f;
+  double total_energy =0.0f;
   for (it = inEdges.begin(); it != inEdges.end(); it++) {
     if (it->first.ptr != NULL) 
 	{
 		double runtime=it->first.ptr->runtime;
 		double power=it->first.ptr->power;
+		power=power_no_idle(power);
 		double energy=it->first.ptr->energy;
-		total += cost_func(runtime,power,energy);
+		//total += cost_func(runtime,power,energy);
+		total_runtime+=runtime;
+		total_energy+=power*runtime;
 	}
   }
-  totalCost = total;
-  return total;
+  double total_power=total_energy/total_runtime;
+  totalCost = cost_func(total_runtime,total_power);
+  return totalCost;
 }
 
 float Graph::run(Model* model)
