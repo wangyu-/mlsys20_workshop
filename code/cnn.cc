@@ -90,15 +90,15 @@ double finish_check_power()
 	check_power_stop=1;
 	pthread_mutex_lock(&mutex);
 	double sum=0,avg;
+	assert(power_vec.size()>1);
         printf("[");
-	for(int i=0;i<power_vec.size();i++)
+	for(int i=0;i<power_vec.size()-1;i++)
 	{
 		sum+=power_vec[i];
 		printf("%.2f,",power_vec[i]);
 	}
 	printf("]\n");
-	assert(!power_vec.empty());
-	avg=sum/power_vec.size();
+	avg=sum/(power_vec.size()-1);
 	power_vec.clear();
 	return avg;
 }
