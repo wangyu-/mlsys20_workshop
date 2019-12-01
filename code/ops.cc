@@ -21,8 +21,8 @@ using namespace std;
 double cost_func(double runtime,double power)
 {
 	const double alpha=0.0;
-	const double beta=1.0;
-	const double gamma=0.0;
+	const double beta=0.0;
+	const double gamma=1.0;
 	const double normal_a=1.0;
 	const double normal_b=1.0;
 	const double normal_c=1.0;
@@ -656,7 +656,7 @@ void Graph::print_costs(void)
     double runtime=it->first.ptr->runtime;
     energy+=power*runtime;
   }
-  printf("    Estimated energy=%f, power=%f\n",energy,energy/exe_time);
+  printf("    Estimated power=%f energy=%f\n",energy/exe_time,energy);
   printf("    Estimated runtime = %.4lf ms\n", exe_time);
   printf("    Floating point operations = %.4lf Gflop\n", flops / 1024 / 1024 / 1024);
   printf("    Memory accesses = %.4lf MB\n", mem_acc * 4.0 / 1024 / 1024);
