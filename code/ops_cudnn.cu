@@ -82,6 +82,7 @@ float Model::measure_oplist_runtime(const std::vector<OpBase*>& opBaseList)
   t=get_current_time()-t;
   double power=finish_check_power();
   double new_run_time=t/power_time;
+  power=power_no_idle(power);
   printf("\n    Measured power=%f energy=%f\n",power,new_run_time*power);
   
   return new_run_time;

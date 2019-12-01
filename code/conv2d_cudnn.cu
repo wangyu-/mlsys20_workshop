@@ -155,24 +155,32 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   }
 #endif
 
+  double best_cost=999999999999999.0;
+  int first=1;
+
+
   for(int idx=cnt-1;idx>=0;idx--)
 {
   if(int(perfResults[idx].status)!=0) continue;
-  conv->fwdAlgo = perfResults[idx].algo;
+  cudnnConvolutionFwdAlgo_t current_algo=perfResults[idx].algo;
   //printf("<<<%d>>>\n",int(perfResults[idx].status));
   //conv->fwdAlgo = (cudnnConvolutionFwdAlgo_t)2;
  
-  string key=export_op_key(*conv)+",<"+to_string(conv->fwdAlgo)+">";
+  string key=export_op_key(*conv)+",<"+to_string(current_algo)+">";
+  double runtime;
+  double power;
+  double energy;
   //printf("<pre_measure>, %s\n",key.c_str());
 
   if(mp.find(key)!=mp.end())
   {
-	  conv->runtime=mp[key].runtime;
-	  conv->power=mp[key].power;
-          conv->energy=mp[key].power*mp[key].runtime;
+	  runtime=mp[key].runtime;
+	  power=mp[key].power;
+          energy=mp[key].power*mp[key].runtime;
+	  
 	  printf("<found from mp>, %s, ",key.c_str());
 	  printf("runtime=%f power=%f energe=%f\n", mp[key].runtime, mp[key].power, mp[key].power*mp[key].runtime);
-	  continue ;
+	  goto end;
 
   }
   checkCUDA(cudaDeviceSynchronize());
@@ -181,13 +189,13 @@ void Model::measure_conv2d_cost(Conv2D* conv)
     if (conv->relu) {
       checkCUDNN(cudnnConvolutionBiasActivationForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
-          convDesc, conv->fwdAlgo, workSpace, workSpaceSize,
+          convDesc, current_algo, workSpace, workSpaceSize,
           &beta, outputTensor, outputPtr, biasTensor, biasPtr, actiDesc,
           outputTensor, outputPtr));
     } else {
       checkCUDNN(cudnnConvolutionForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
-          convDesc, conv->fwdAlgo, workSpace, workSpaceSize,
+          convDesc, current_algo, workSpace, workSpaceSize,
           &beta, outputTensor, outputPtr));
       checkCUDNN(cudnnAddTensor(dnn, &alpha, biasTensor, biasPtr,
           &alpha, outputTensor, outputPtr));
@@ -199,7 +207,7 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   //double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
   
-
+  {
   long times=0;
   double current_time=get_current_time();
   double current_time2;
@@ -209,25 +217,24 @@ void Model::measure_conv2d_cost(Conv2D* conv)
     if (conv->relu) {
       checkCUDNN(cudnnConvolutionBiasActivationForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
-          convDesc, conv->fwdAlgo, workSpace, workSpaceSize,
+          convDesc, current_algo, workSpace, workSpaceSize,
           &beta, outputTensor, outputPtr, biasTensor, biasPtr, actiDesc,
           outputTensor, outputPtr));
     } else {
       checkCUDNN(cudnnConvolutionForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
-          convDesc, conv->fwdAlgo, workSpace, workSpaceSize,
+          convDesc, current_algo, workSpace, workSpaceSize,
           &beta, outputTensor, outputPtr));
       checkCUDNN(cudnnAddTensor(dnn, &alpha, biasTensor, biasPtr,
           &alpha, outputTensor, outputPtr));
     }
   }
-  double power=finish_check_power();
-  double runtime=conv->runtime = (current_time2-current_time)/times;
+  power=finish_check_power();
+  runtime= (current_time2-current_time)/times;
+  energy=power*runtime;
 
   printf("<measure>, %s, ",key.c_str());
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);
-  conv->power=power;
-  conv->energy=power*runtime;
 
   mp[key].runtime=runtime;
   mp[key].power=power;
@@ -238,6 +245,24 @@ void Model::measure_conv2d_cost(Conv2D* conv)
          BATCH_SIZE, inputC, inputH, inputW, outputC, conv->kernelH, conv->kernelW,
          conv->strideH, conv->strideW, conv->padH, conv->padW, conv->runtime);
 #endif
+  }
+  end:
+  double cost= cost_func(runtime,power,energy);
+  if(first)
+  {
+	  best_cost=cost;	  
+	  first=0;
+	  conv->runtime=runtime;
+	  conv->power=power;
+	  conv->energy=energy;
+	  conv->fwdAlgo=current_algo;
+  }else if(cost<best_cost)
+  {
+	  conv->runtime=runtime;
+	  conv->power=power;
+	  conv->energy=energy;
+	  conv->fwdAlgo=current_algo;
+  }
 }
 }
 

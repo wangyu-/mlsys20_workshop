@@ -149,7 +149,7 @@ public:
   int numInputs, numOutputs;
   OpType type;
   Model *model;
-  double runtime;
+  double runtime=0;
   double power=0;
   double energy=0;
 };
@@ -609,6 +609,13 @@ inline vector<string> string_to_vec(const char * s,const char * sp) {
 	  }
 
 	  return res;
+}
+double cost_func(double runtime,double power,double energy);
+inline double power_no_idle(double power)
+{
+	//power-=23;
+	//if(power<0) power=0;
+	return power;	
 }
 
 #endif

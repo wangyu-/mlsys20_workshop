@@ -18,6 +18,17 @@
 #include <fstream>
 using namespace std;
 
+double cost_func(double runtime,double power,double energy_dummy)
+{
+	const double alpha=0.0;
+	const double beta=0.0;
+	const double gamma=1.0;
+	power=power_no_idle(power);
+	double energy=runtime*power;
+
+	return alpha*runtime +beta*power +gamma*energy;
+}
+
 /*
 bool Op::operator==(const Op& b)
 {
@@ -475,7 +486,13 @@ float Graph::total_cost(void)
   std::map<Op, std::set<Edge, EdgeCompare>, OpCompare>::const_iterator it;
   float total = 0.0f;
   for (it = inEdges.begin(); it != inEdges.end(); it++) {
-    if (it->first.ptr != NULL) total += it->first.ptr->runtime;
+    if (it->first.ptr != NULL) 
+	{
+		double runtime=it->first.ptr->runtime;
+		double power=it->first.ptr->power;
+		double energy=it->first.ptr->energy;
+		total += cost_func(runtime,power,energy);
+	}
   }
   totalCost = total;
   return total;
@@ -626,7 +643,10 @@ void Graph::print_costs(void)
   for (it = inEdges.begin(); it != inEdges.end(); it++)
   {
     it->first.ptr->collect_costs(exe_time, flops, mem_acc, num_kernels);
-    energy+=it->first.ptr->energy;
+    double power=it->first.ptr->power;
+    power=power_no_idle(power);
+    double runtime=it->first.ptr->runtime;
+    energy+=power*runtime;
   }
   printf("    Estimated energy=%f, power=%f\n",energy,energy/exe_time);
   printf("    Estimated runtime = %.4lf ms\n", exe_time);
