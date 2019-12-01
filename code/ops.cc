@@ -628,11 +628,11 @@ void Graph::print_costs(void)
     it->first.ptr->collect_costs(exe_time, flops, mem_acc, num_kernels);
     energy+=it->first.ptr->energy;
   }
+  printf("    Estimated energy=%f, power=%f\n",energy,energy/exe_time);
   printf("    Estimated runtime = %.4lf ms\n", exe_time);
   printf("    Floating point operations = %.4lf Gflop\n", flops / 1024 / 1024 / 1024);
   printf("    Memory accesses = %.4lf MB\n", mem_acc * 4.0 / 1024 / 1024);
   printf("    GPU kernel launches = %d\n", num_kernels);
-  printf("    energy=%f, power=%f\n",energy,energy/exe_time);
   //printf("Cost metrics: exe_time(%.4lf) flops(%.4lf) "
   //       "memory_access(%.4lf) kernel_launches(%d)\n",
   //       exe_time, flops / 1024.0 / 1024.0 / 1024.0,
