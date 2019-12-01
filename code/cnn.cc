@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <atomic>
+#include <sys/wait.h>
 
 map<string,value_t> mp;
 ofstream db_output;
@@ -66,6 +67,8 @@ void *check_power(void *)
 			if(check_power_stop==1) break;
 			power_vec.push_back(power); 
 			//printf("<%d>\n",power);
+			pclose(fp);
+			waitpid(-1, 0, WNOHANG);
 			usleep(300*1000);
 		}
 		pthread_mutex_unlock(&mutex);
