@@ -121,11 +121,10 @@ Graph * example(Model* model)
   return graph;
 }
 int use_enlarge=0;
+int is_inception=0;
 Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
 {
   std::vector<GraphXfer*> xfers;
-  if(use_enlarge)
-	  xfers.push_back(create_enlarge_conv_xfer(model));
   xfers.push_back(create_fuse_conv_batch_xfer(model));
   xfers.push_back(create_fuse_mm_acti_xfer(model));
   xfers.push_back(create_fuse_conv_relu_xfer(model));
@@ -133,6 +132,8 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
   xfers.push_back(create_merge_conv_xfer(model));
   xfers.push_back(create_exclusive_concat_xfer(model));
   xfers.push_back(create_resnet_merge_xfer(model));
+  if(use_enlarge)
+	  xfers.push_back(create_enlarge_conv_xfer(model));
 
   std::priority_queue<Graph*, std::vector<Graph*>, GraphCompare> candidates;
   std::set<size_t> hashmap;
@@ -197,7 +198,12 @@ enum DNNModel {
 
 DNNModel name_to_model(std::string name)
 {
-	if (name == "inception") return Inception;
+	if (name == "inception") 
+	{
+		use_enlarge=1;
+		is_inception=1;
+		return Inception;
+	}
 	if (name == "example") return Example;
 	if (name == "squeezenet") 
 	{
