@@ -103,7 +103,7 @@ double finish_check_power()
 	return avg;
 }
 
-int example(Model* model)
+Graph * example(Model* model)
 {
   Graph *graph = new Graph(model);
   Tensor input;
@@ -118,6 +118,7 @@ int example(Model* model)
   Tensor t = graph->conv2d(input, 384, 3, 3, 1, 1, 1, 1, true);
   Tensor t1 = graph->conv2d(t, 384, 3, 3, 1, 1, 1, 1, true);
   Tensor t2 = graph->conv2d(t, 384, 3, 3, 1, 1, 1, 1, true);
+  return graph;
 }
 int use_enlarge=0;
 Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
@@ -191,11 +192,13 @@ enum DNNModel {
   DenseNet,
   RNNTC,
   NMT,
+  Example
 };
 
 DNNModel name_to_model(std::string name)
 {
 	if (name == "inception") return Inception;
+	if (name == "example") return Example;
 	if (name == "squeezenet") 
 	{
 		use_enlarge=1;
@@ -371,6 +374,9 @@ int main(int argc, char **argv)
     case SqueezeNet:
       graph = SqueezeNetComplex(model);
       break;
+    case Example:
+	graph = example(model);
+        break;
     case Inception:
       graph = InceptionV3(model);
       break;
