@@ -20,6 +20,7 @@
 GraphXfer* create_fuse_conv_batch_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<fuse_conv_batch>";
   SrcOp* conv1 = new SrcOp(OpBase::OP_CONV2D);
   conv1->add_constraint(COMPARE_EQ, OpBase::PM_RELU, false);
   SrcOp* bn1 = new SrcOp(OpBase::OP_BATCHNORM);
@@ -54,6 +55,7 @@ Op FuseMmActiDstOp::create_operator(Model* model)
 GraphXfer* create_fuse_mm_acti_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<fuse_mm_acti>";
   SrcOp* mm1 = new SrcOp(OpBase::OP_MATMUL);
   SrcOp* acti1 = new SrcOp(OpBase::OP_SIGMOID);
   subst->add_src_op(mm1);
@@ -92,6 +94,7 @@ Op FuseConvReluDstOp::create_operator(Model* model)
 GraphXfer* create_fuse_conv_relu_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<fuse_conv_relu>";
   SrcOp* conv1 = new SrcOp(OpBase::OP_CONV2D);
   SrcOp* relu1 = new SrcOp(OpBase::OP_RELU);
   subst->add_src_op(conv1);
@@ -207,6 +210,7 @@ Op SplitOp::create_operator(Model* model)
 GraphXfer* create_merge_mm_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<merge_mm>";
   SrcOp* op1 = new SrcOp(OpBase::OP_ANY);
   SrcOp* mm1 = new SrcOp(OpBase::OP_MATMUL);
   SrcOp* mm2 = new SrcOp(OpBase::OP_MATMUL);
@@ -241,6 +245,7 @@ GraphXfer* create_merge_mm_xfer(Model* model)
 GraphXfer* create_merge_conv_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<merge_conv>"; 
   SrcOp* op1 = new SrcOp(OpBase::OP_ANY);
   SrcOp* conv1 = new SrcOp(OpBase::OP_CONV2D);
   SrcOp* conv2 = new SrcOp(OpBase::OP_CONV2D);
@@ -295,6 +300,7 @@ Op Conv3x3Op::create_operator(Model* model)
 GraphXfer* create_enlarge_conv_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<enlarge_conv>";
   SrcOp* op1 = new SrcOp(OpBase::OP_CONV2D);
   op1->add_constraint(COMPARE_LT, OpBase::PM_KERNEL_H, 4);
   op1->add_constraint(COMPARE_LT, OpBase::PM_KERNEL_W, 4);
@@ -329,6 +335,7 @@ Op ExConcat::create_operator(Model* model)
 GraphXfer* create_exclusive_concat_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<exclusive_concat>";
   SrcOp* op1 = new SrcOp(OpBase::OP_ANY);
   op1->add_constraint(COMPARE_NE, OpBase::PM_OP_TYPE, OpBase::OP_SPLIT);
   SrcOp* op2 = new SrcOp(OpBase::OP_ANY);
@@ -357,6 +364,7 @@ GraphXfer* create_exclusive_concat_xfer(Model* model)
 GraphXfer* create_resnet_merge_xfer(Model* model)
 {
   GraphXfer* subst = new GraphXfer(model);
+  subst->name="<resnet_merge>";
   SrcOp* conv1 = new SrcOp(OpBase::OP_CONV2D);
   SrcOp* op1 = new SrcOp(OpBase::OP_ANY);
   SrcOp* add1 = new SrcOp(OpBase::OP_EW_ADD);

@@ -202,6 +202,7 @@ void GraphXfer::run(int depth, Graph* graph,
     }
     // Generate a new graph by applying xfer rule
     if (pass) {
+      //printf("<%s>\n",name.c_str());
       Graph* newGraph = create_new_graph(graph);
       assert(newGraph->check_correctness());
       if (newGraph->total_cost() < threshold) {

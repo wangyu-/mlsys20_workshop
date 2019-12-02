@@ -103,6 +103,7 @@ public:
 
 class GraphXfer {
 public:
+  string name="";
   GraphXfer(Model* _model);
   void add_src_op(SrcOp* op);
   void add_dst_op(DstOp* op);
