@@ -36,7 +36,7 @@ void Concat::forward(void)
     size_t size = sizeof(DATATYPE);
     for (int j = 0; j < inputs[i].numDim; j++)
       size *= inputs[i].dim[j];
-    if (needCopy[i]&&!is_inception)
+    if (needCopy[i])
       checkCUDA(cudaMemcpyAsync(((char*)outputs[0].ptr) + offset,
                                 inputs[i].ptr, size,
                                 cudaMemcpyDeviceToDevice));

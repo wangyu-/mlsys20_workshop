@@ -132,8 +132,8 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
   xfers.push_back(create_merge_conv_xfer(model));
   xfers.push_back(create_exclusive_concat_xfer(model));
   xfers.push_back(create_resnet_merge_xfer(model));
-  if(use_enlarge)
-	  xfers.push_back(create_enlarge_conv_xfer(model));
+  //if(use_enlarge)
+  //	  xfers.push_back(create_enlarge_conv_xfer(model));
 
   std::priority_queue<Graph*, std::vector<Graph*>, GraphCompare> candidates;
   std::set<size_t> hashmap;
