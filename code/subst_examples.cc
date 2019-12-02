@@ -254,8 +254,11 @@ GraphXfer* create_merge_conv_xfer(Model* model)
   subst->add_src_op(conv2);
   subst->add_src_edge(op1, conv1);
   subst->add_src_edge(op1, conv2);
-  //subst->add_constraint(COMPARE_EQ, conv1, OpBase::PM_KERNEL_H, conv2, OpBase::PM_KERNEL_H);
-  //subst->add_constraint(COMPARE_EQ, conv1, OpBase::PM_KERNEL_W, conv2, OpBase::PM_KERNEL_W);
+  if(use_enlarge)
+{
+  subst->add_constraint(COMPARE_EQ, conv1, OpBase::PM_KERNEL_H, conv2, OpBase::PM_KERNEL_H);
+  subst->add_constraint(COMPARE_EQ, conv1, OpBase::PM_KERNEL_W, conv2, OpBase::PM_KERNEL_W);
+}
   subst->add_constraint(COMPARE_EQ, conv1, OpBase::PM_STRIDE_H, conv2, OpBase::PM_STRIDE_H);
   subst->add_constraint(COMPARE_EQ, conv1, OpBase::PM_STRIDE_W, conv2, OpBase::PM_STRIDE_W);
   //subst->add_constraint(COMPARE_EQ, conv1, OpBase::PM_PAD_H, conv2, OpBase::PM_PAD_H);

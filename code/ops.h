@@ -622,5 +622,6 @@ inline double power_no_idle(double power)
 const int params_num=9;
 const int mute=1;
 extern int is_inception;
+extern int use_enlarge;
 
 #endif

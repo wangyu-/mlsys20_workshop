@@ -132,8 +132,8 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
   xfers.push_back(create_merge_conv_xfer(model));
   xfers.push_back(create_exclusive_concat_xfer(model));
   xfers.push_back(create_resnet_merge_xfer(model));
-  //if(use_enlarge)
-  //	  xfers.push_back(create_enlarge_conv_xfer(model));
+  if(use_enlarge)
+  	 xfers.push_back(create_enlarge_conv_xfer(model));
 
   std::priority_queue<Graph*, std::vector<Graph*>, GraphCompare> candidates;
   std::set<size_t> hashmap;
@@ -177,6 +177,8 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
       delete subGraph;
     }
   }
+  printf("best_cost=%f\n",bestGraph->total_cost());
+
   printf("Optimized Graph:\n    End-to-end runtime = %.4lfms\n", bestGraph->run(model));
   bestGraph->print_costs();
 
@@ -200,20 +202,17 @@ DNNModel name_to_model(std::string name)
 {
 	if (name == "inception") 
 	{
-		use_enlarge=1;
 		is_inception=1;
 		return Inception;
 	}
 	if (name == "example") return Example;
 	if (name == "squeezenet") 
 	{
-		use_enlarge=1;
 		return SqueezeNet;
 	}
 	if (name == "resnet34") return Resnet34;
 	if (name == "resnet50") 
 	{
-		use_enlarge=1;
 		return Resnet50;
 	}
 	if (name == "densenet") return DenseNet;
@@ -236,6 +235,10 @@ void parse_args(bool &optimize,
   {
     if (!strcmp(argv[i],"--po")) {
       use_perf_order=1;
+      continue;
+    }
+    if (!strcmp(argv[i],"--en")) {
+      use_enlarge=1;
       continue;
     }
     if (!strcmp(argv[i],"--params")) {
