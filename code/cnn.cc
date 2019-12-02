@@ -164,7 +164,7 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
       break;
     }
 //#ifdef VERBOSE
-    if (counter % 20 == 0)
+    if (counter % int(params[8]+0.5) == 0)
       printf("[%d] cost = %.4lf bestCost = %.4lf candidates.size() = %zu\n", counter, subGraph->total_cost(), bestCost, candidates.size());
 //#endif
     counter ++;
@@ -339,8 +339,8 @@ int main(int argc, char **argv)
 
   bool optimize = true;
   bool export_graph = false;
-  int budget = 300; // 300 candidates
   float alpha = 1.05;
+  int budget = 300; // 300 candidates
 /*
   start_check_power();
   sleep(5);
@@ -360,6 +360,9 @@ int main(int argc, char **argv)
   for(int i=0;i<params.size();i++)
 	printf("<%.3f>",params[i]);
   printf("\n");
+  alpha=params[6];
+  budget=params[7];
+  printf("alpha=%f budget=%d\n",alpha,budget);
   printf("DnnModel(%d) alpha(%.4lf)\n", dnn, alpha);
 
   Model* model = new Model(false/*training*/);

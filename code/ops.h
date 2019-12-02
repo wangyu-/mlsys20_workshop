@@ -619,7 +619,7 @@ inline double power_no_idle(double power)
 	//if(power<0) power=0;
 	return power;	
 }
-const int params_num=6;
+const int params_num=9;
 const int mute=1;
 
 #endif
