@@ -148,6 +148,7 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
   int counter = 0;
   bool firstGraph = true;
   std::map<Edge, int, EdgeCompare> edgeWeights;
+  double t=get_current_time();
   while (!candidates.empty()) {
     if(about_to_exit) break;
     Graph *subGraph = candidates.top();
@@ -177,7 +178,8 @@ Graph* optimize_graph(Graph *graph, Model *model, float alpha, int budget)
       delete subGraph;
     }
   }
-  printf("best_cost=%f\n",bestGraph->total_cost());
+  t=get_current_time()-t;
+  printf("best_cost=%f search_time=%fs\n",bestGraph->total_cost(),t/1000);
 
   printf("Optimized Graph:\n    End-to-end runtime = %.4lfms\n", bestGraph->run(model));
   bestGraph->print_costs();

@@ -157,9 +157,13 @@ void Model::measure_conv2d_cost(Conv2D* conv)
 
   double best_cost=999999999999999.0;
   int first=1;
+  int begin=cnt-1;
+  if(use_perf_order)
+  {
+     begin=0;
+  }
 
-
-  for(int idx=cnt-1;idx>=0;idx--)
+  for(int idx=begin;idx>=0;idx--)
 {
   if(int(perfResults[idx].status)!=0) continue;
   cudnnConvolutionFwdAlgo_t current_algo=perfResults[idx].algo;
