@@ -547,7 +547,7 @@ float Graph::total_cost(void)
   for (it = inEdges.begin(); it != inEdges.end(); it++) {
     if (it->first.ptr != NULL) 
 	{
-		if(it->first.ptr->type==OpBase::OpType::OP_CONV2D) 
+		if(!use_perf_order&&it->first.ptr->type==OpBase::OpType::OP_CONV2D) 
 		{	
 			assert(conv_algo_mp.find(it->first)==conv_algo_mp.end());
 			Conv2D* conv = (Conv2D*) it->first.ptr;	
@@ -571,7 +571,8 @@ float Graph::total_cost(void)
   }
   //double runtime_inner=0;
   //double energy_inner=0;
-  inner_search(conv_algo_mp,total_runtime,total_energy);
+  if(!use_perf_order)
+  	inner_search(conv_algo_mp,total_runtime,total_energy);
   double total_power=total_energy/total_runtime;
   totalCost = cost_func(total_runtime,total_power);
   //printf("<%d,%d>",tc_cnt++,conv_cnt);
@@ -630,9 +631,15 @@ float Graph::run(Model* model)
                              conv->strideH, conv->strideW,
                              conv->padH, conv->padW, conv->relu);
 #ifdef USE_CUDNN
-          //((Conv2D*)opPtr)->fwdAlgo = conv->fwdAlgo;
-          assert(conv_algo_mp.find(op)!=conv_algo_mp.end());
-          ((Conv2D*)opPtr)->fwdAlgo = conv_algo_mp[op].algo;
+          if(!use_perf_order)
+	  {
+		  assert(conv_algo_mp.find(op)!=conv_algo_mp.end());
+		  ((Conv2D*)opPtr)->fwdAlgo = conv_algo_mp[op].algo;
+	  }
+	  else
+	  {
+          	((Conv2D*)opPtr)->fwdAlgo = conv->fwdAlgo;	
+	  }
 #endif
           break;
         }
