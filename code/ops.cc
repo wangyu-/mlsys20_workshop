@@ -484,10 +484,59 @@ float Graph::total_cost(void)
 }*/
 
 //int tc_cnt=0;
+void inner_search(conv_algo_mp_t & mp, double &runtime,double &energy)
+{
+	for(auto it=mp.begin();it!=mp.end();it++)
+	{
+		algo_t algo=it->second.algo;
+		
+		runtime+=it->second.algo_cost_mp[algo].runtime;
+		energy+=it->second.algo_cost_mp[algo].energy;
+	}
+	
+	while(1)
+	{
+		int found_better=0;
+		for(auto it=mp.begin();it!=mp.end();it++)
+		{
+			algo_t old_best_algo=it->second.algo;
+			auto& ac_mp=it->second.algo_cost_mp;
+			
+			double rest_runtime=runtime-ac_mp[old_best_algo].runtime;
+			double rest_energy=energy-ac_mp[old_best_algo].energy;
+
+			double best_cost=1e10;
+			algo_t best_algo;
+			double best_runtime;
+			double best_energy;
+			for(auto it2=ac_mp.begin();it2!=ac_mp.end();it2++)
+			{
+				double new_runtime=rest_runtime+it2->second.runtime;
+				double new_energy=rest_energy+it2->second.energy;
+				double new_cost=cost_func(new_runtime,new_energy/new_runtime);
+				if(new_cost<best_cost)
+				{
+					best_cost=new_cost;
+					best_algo=it2->first;
+					best_runtime=new_runtime;
+					best_energy=new_energy;
+				}
+			}
+			if(best_algo!=old_best_algo)
+			{
+				found_better++;
+				it->second.algo=best_algo;
+				runtime=best_runtime;
+				energy=best_energy;
+			}
+		}
+		if(found_better==0) break;
+	}	
+}
 float Graph::total_cost(void)
 {
   if (totalCost > 0) return totalCost;
-
+  assert(conv_algo_mp.empty());
   //int conv_cnt=0;
 
   std::map<Op, std::set<Edge, EdgeCompare>, OpCompare>::const_iterator it;
@@ -501,13 +550,14 @@ float Graph::total_cost(void)
 		{	
 			assert(conv_algo_mp.find(it->first)==conv_algo_mp.end());
 			Conv2D* conv = (Conv2D*) it->first.ptr;	
-			conv_algo_mp[it->first]=conv->fwdAlgo;
-			//conv_algo_mp[it->first]=conv->algo_cost_mp.begin()->first;
+			conv_algo_mp[it->first].algo=conv->algo_cost_mp.begin()->first;
+			conv_algo_mp[it->first].algo_cost_mp=conv->algo_cost_mp;
+			//conv_algo_mp[it->first].algo=conv->fwdAlgo;
 
 			//assert(mp.find(it->first.ptr)==mp.end());
 			//mp[it->first.ptr];
 		//	conv_list.push_back(it);
-			//continue;
+			continue;
 		}
 		double runtime=it->first.ptr->runtime;
 		double power=it->first.ptr->power;
@@ -518,9 +568,14 @@ float Graph::total_cost(void)
 		total_energy+=power*runtime;
 	}
   }
+  //double runtime_inner=0;
+  //double energy_inner=0;
+  inner_search(conv_algo_mp,total_runtime,total_energy);
   double total_power=total_energy/total_runtime;
   totalCost = cost_func(total_runtime,total_power);
   //printf("<%d,%d>",tc_cnt++,conv_cnt);
+  this->total_runtime=total_runtime;
+  this->total_energy=total_energy;
   return totalCost;
 }
 
@@ -576,7 +631,7 @@ float Graph::run(Model* model)
 #ifdef USE_CUDNN
           //((Conv2D*)opPtr)->fwdAlgo = conv->fwdAlgo;
           assert(conv_algo_mp.find(op)!=conv_algo_mp.end());
-          ((Conv2D*)opPtr)->fwdAlgo = conv_algo_mp[op];
+          ((Conv2D*)opPtr)->fwdAlgo = conv_algo_mp[op].algo;
 #endif
           break;
         }
@@ -668,6 +723,7 @@ void Graph::print_costs(void)
   int num_kernels = 0;
   std::map<Op, std::set<Edge, EdgeCompare>, OpCompare>::const_iterator it;
   double energy=0;
+  
   for (it = inEdges.begin(); it != inEdges.end(); it++)
   {
     it->first.ptr->collect_costs(exe_time, flops, mem_acc, num_kernels);
@@ -676,6 +732,9 @@ void Graph::print_costs(void)
     double runtime=it->first.ptr->runtime;
     energy+=power*runtime;
   }
+  exe_time=this->total_runtime;
+  energy=this->total_energy;
+
   printf("    Estimated power=%f energy=%f\n",energy/exe_time,energy);
   printf("    Estimated runtime = %.4lf ms\n", exe_time);
   printf("    Floating point operations = %.4lf Gflop\n", flops / 1024 / 1024 / 1024);

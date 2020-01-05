@@ -102,6 +102,7 @@ void Conv2D::forward(void)
 
 void Model::measure_conv2d_cost(Conv2D* conv)
 {
+  assert(conv->algo_cost_mp.empty());
   const float alpha = 1.0f;
   const float beta = 0.0f;
   int inputC = conv->inputs[0].dim[1];

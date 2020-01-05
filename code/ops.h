@@ -161,10 +161,25 @@ struct conv_choice_t
 {	
 	op_it_t op_it;
 	algo_t algo;
+
 };*/
+struct cost_t 
+{
+	//algo_t algo;
+	double runtime;
+	double energy;
+};
+struct algo_data_t
+{
+	algo_t algo;
+	std::map<algo_t,cost_t> algo_cost_mp;
+};
+typedef std::map<Op, algo_data_t, OpCompare> conv_algo_mp_t;
 class Graph {
 public:
-  std::map<Op, algo_t, OpCompare> conv_algo_mp;
+  double total_runtime=0;
+  double total_energy=0;
+  conv_algo_mp_t conv_algo_mp;
   Graph(Model *_model);
   void export_to_file(std::string file_name);
   Tensor conv2d(Tensor _input, int _outputC, int _kernelH, int _kernelW,
@@ -209,12 +224,6 @@ public:
 };
 
 
-struct cost_t 
-{
-	//algo_t algo;
-	double runtime;
-	double energy;
-};
 class Conv2D : public OpBase {
 public:
   Conv2D(Model* _model, Tensor _input, int _outputC,
