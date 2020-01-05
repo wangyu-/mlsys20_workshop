@@ -30,6 +30,7 @@ double cost_func(double runtime,double power)
 	double energy=runtime*power;
 
 	return alpha*runtime/normal_a +beta*power/normal_b +gamma*energy/normal_c;
+	//return pow(runtime/normal_a,alpha)* pow(power/normal_b,beta)* pow(energy/normal_c,gamma);
 }
 
 /*
