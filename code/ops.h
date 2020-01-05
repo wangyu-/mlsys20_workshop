@@ -154,8 +154,17 @@ public:
   double energy=0;
 };
 
+typedef std::map<Op, std::set<Edge, EdgeCompare>, OpCompare>::const_iterator op_it_t;
+typedef cudnnConvolutionFwdAlgo_t algo_t;
+/*
+struct conv_choice_t
+{	
+	op_it_t op_it;
+	algo_t algo;
+};*/
 class Graph {
 public:
+  std::map<Op, algo_t, OpCompare> conv_algo_mp;
   Graph(Model *_model);
   void export_to_file(std::string file_name);
   Tensor conv2d(Tensor _input, int _outputC, int _kernelH, int _kernelW,
@@ -200,6 +209,12 @@ public:
 };
 
 
+struct cost_t 
+{
+	//algo_t algo;
+	double runtime;
+	double energy;
+};
 class Conv2D : public OpBase {
 public:
   Conv2D(Model* _model, Tensor _input, int _outputC,
@@ -221,6 +236,7 @@ public:
   cudnnActivationDescriptor_t actiDesc;
   cudnnConvolutionDescriptor_t convDesc;
   cudnnConvolutionFwdAlgo_t fwdAlgo;
+  std::map<algo_t,cost_t> algo_cost_mp;
 #endif
 #ifdef USE_MKL
   std::vector<dnnPrimitive_t> compList;

@@ -483,15 +483,32 @@ float Graph::total_cost(void)
   return total;
 }*/
 
+//int tc_cnt=0;
 float Graph::total_cost(void)
 {
   if (totalCost > 0) return totalCost;
+
+  //int conv_cnt=0;
+
   std::map<Op, std::set<Edge, EdgeCompare>, OpCompare>::const_iterator it;
+  //std::map<OpBase*,int> mp;
   double total_runtime = 0.0f;
   double total_energy =0.0f;
   for (it = inEdges.begin(); it != inEdges.end(); it++) {
     if (it->first.ptr != NULL) 
 	{
+		if(it->first.ptr->type==OpBase::OpType::OP_CONV2D) 
+		{	
+			assert(conv_algo_mp.find(it->first)==conv_algo_mp.end());
+			Conv2D* conv = (Conv2D*) it->first.ptr;	
+			conv_algo_mp[it->first]=conv->fwdAlgo;
+			//conv_algo_mp[it->first]=conv->algo_cost_mp.begin()->first;
+
+			//assert(mp.find(it->first.ptr)==mp.end());
+			//mp[it->first.ptr];
+		//	conv_list.push_back(it);
+			//continue;
+		}
 		double runtime=it->first.ptr->runtime;
 		double power=it->first.ptr->power;
 		power=power_no_idle(power);
@@ -503,6 +520,7 @@ float Graph::total_cost(void)
   }
   double total_power=total_energy/total_runtime;
   totalCost = cost_func(total_runtime,total_power);
+  //printf("<%d,%d>",tc_cnt++,conv_cnt);
   return totalCost;
 }
 
@@ -556,7 +574,9 @@ float Graph::run(Model* model)
                              conv->strideH, conv->strideW,
                              conv->padH, conv->padW, conv->relu);
 #ifdef USE_CUDNN
-          ((Conv2D*)opPtr)->fwdAlgo = conv->fwdAlgo;
+          //((Conv2D*)opPtr)->fwdAlgo = conv->fwdAlgo;
+          assert(conv_algo_mp.find(op)!=conv_algo_mp.end());
+          ((Conv2D*)opPtr)->fwdAlgo = conv_algo_mp[op];
 #endif
           break;
         }
