@@ -165,7 +165,7 @@ struct conv_choice_t
 };*/
 struct cost_t 
 {
-	//algo_t algo;
+	algo_t algo;
 	double runtime;
 	double energy;
 };

@@ -485,6 +485,115 @@ float Graph::total_cost(void)
 }*/
 
 //int tc_cnt=0;
+struct assn_t
+{
+	double cost;
+	vector<int> vec;
+	long hash()
+	{
+		std::size_t seed = vec.size();
+		for(auto& i : vec) {
+			seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		}
+		return (long)seed;
+	}
+};
+class assn_compare {
+public:
+  bool operator() (assn_t * a, assn_t *b) {
+	return a->cost > b->cost;
+  }
+};
+#include <queue>
+double cal_cost(vector<int> &vec,vector<vector<cost_t>> &cost_mat,double runtime, double energy)
+{
+	for(int i=0;i<vec.size();i++)
+	{
+		runtime+=cost_mat[i][vec[i]].runtime;
+		energy+=cost_mat[i][vec[i]].energy;
+	}
+	return cost_func(runtime,energy/runtime);
+}
+void inner_search0(conv_algo_mp_t & mp, double &runtime,double &energy)
+{
+	double alpha=1.000;
+	std:priority_queue<assn_t*,vector<assn_t*>,assn_compare> queue;
+	std::list<assn_t> pool;
+	vector<vector<cost_t>> cost_mat;
+	for(auto it=mp.begin();it!=mp.end();it++)
+	{
+		auto& ac_mp=it->second.algo_cost_mp;
+		vector<cost_t> cost_vec;
+		for(auto it2=ac_mp.begin();it2!=ac_mp.end();it2++)
+		{
+			cost_vec.push_back(it2->second);
+			cost_vec.back().algo=it2->first;
+		}
+		cost_mat.push_back(cost_vec);
+	} 
+	pool.emplace_back();
+	assn_t *base= &pool.back();
+	int conv_cnt=mp.size();
+	for(int i=0;i<conv_cnt;i++) 
+		base->vec.push_back(0);
+	base->cost=cal_cost(base->vec,cost_mat,runtime,energy);
+	std::set<long> hashmap;
+	hashmap.insert(base->hash());
+	queue.push(base);
+	assn_t * best=base;
+	int step=0;
+	while(!queue.empty())
+	{
+		/*if(step%5000==0)
+		{
+			printf("<%d,%d,%f>\n",step,queue.size(),best->cost);
+		}*/
+		step++;
+		assn_t *now=queue.top();
+		queue.pop();
+		if(now->cost <best->cost)
+		{
+			best=now;
+		}
+		if(now->cost > best->cost*alpha)
+			break;
+		for(int i=0;i<conv_cnt;i++)
+		{
+			for(int j=0;j<cost_mat[i].size();j++)
+			{
+				if(now->vec[i]==j) continue;
+				pool.emplace_back();
+				assn_t *new_assn=&pool.back();
+				new_assn->vec=now->vec;
+				new_assn->vec[i]=j;
+				new_assn->cost=cal_cost(new_assn->vec,cost_mat,runtime,energy);
+				if(new_assn->cost > best->cost*alpha)
+					continue;
+				long hash=new_assn->hash();
+				if(hashmap.find(hash)!=hashmap.end())
+					continue;
+				hashmap.insert(hash);
+				queue.push(new_assn);
+			}
+		}
+	}
+	//printf("<done>");
+	int cnt=0;
+	for(auto it=mp.begin();it!=mp.end();it++)
+	{
+		int idx=cnt++;
+		it->second.algo=cost_mat[idx][best->vec[idx]].algo;
+	}
+
+	for(auto it=mp.begin();it!=mp.end();it++)
+	{
+		algo_t algo=it->second.algo;
+		
+		runtime+=it->second.algo_cost_mp[algo].runtime;
+		energy+=it->second.algo_cost_mp[algo].energy;
+	}
+
+}
 void inner_search(conv_algo_mp_t & mp, double &runtime,double &energy)
 {
 	for(auto it=mp.begin();it!=mp.end();it++)
@@ -494,7 +603,6 @@ void inner_search(conv_algo_mp_t & mp, double &runtime,double &energy)
 		runtime+=it->second.algo_cost_mp[algo].runtime;
 		energy+=it->second.algo_cost_mp[algo].energy;
 	}
-	
 	while(1)
 	{
 		int found_better=0;
@@ -533,6 +641,7 @@ void inner_search(conv_algo_mp_t & mp, double &runtime,double &energy)
 		}
 		if(found_better==0) break;
 	}	
+	//printf("<best_cost=%f>\n",cost_func(runtime,energy/runtime));
 }
 float Graph::total_cost(void)
 {
