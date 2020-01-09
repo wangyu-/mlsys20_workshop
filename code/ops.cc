@@ -488,6 +488,8 @@ float Graph::total_cost(void)
 struct assn_t
 {
 	double cost;
+	double runtime=0;
+	double energy=0;
 	vector<int> vec;
 	long hash()
 	{
@@ -514,7 +516,78 @@ double cal_cost(vector<int> &vec,vector<vector<cost_t>> &cost_mat,double runtime
 	}
 	return cost_func(runtime,energy/runtime);
 }
-void inner_search0(conv_algo_mp_t & mp, double &runtime,double &energy)
+void inner_search_g2(conv_algo_mp_t & mp, double &runtime,double &energy)
+{
+	vector<vector<cost_t>> cost_mat;
+	for(auto it=mp.begin();it!=mp.end();it++)
+	{
+		auto& ac_mp=it->second.algo_cost_mp;
+		vector<cost_t> cost_vec;
+		for(auto it2=ac_mp.begin();it2!=ac_mp.end();it2++)
+		{
+			cost_vec.push_back(it2->second);
+			cost_vec.back().algo=it2->first;
+		}
+		cost_mat.push_back(cost_vec);
+	} 
+
+	int cnt=0;
+	assn_t base;
+	int conv_cnt=mp.size();
+	for(int i=0;i<conv_cnt;i++) 
+		base.vec.push_back(0);
+	base.energy+=energy;
+	base.runtime+=runtime;
+	for(int i=0;i<base.vec.size();i++)
+	{
+		base.runtime+=cost_mat[i][base.vec[i]].runtime;
+		base.energy+=cost_mat[i][base.vec[i]].energy;
+	}
+	while(1)
+	{
+		int found=0;
+		for(int i=0;i<conv_cnt;i++)
+		{
+			for(int j=i+1;j<conv_cnt;j++)
+			{
+				for(int u=0;u<cost_mat[i].size();u++)
+					for(int v=0;v<cost_mat[j].size();v++)
+					{
+						int ori_u=base.vec[i];
+						int ori_v=base.vec[j];
+						if(u==ori_u&&v==ori_v)
+						{
+							continue;
+						}
+						double delt_energy=cost_mat[i][u].energy+cost_mat[j][v].energy -cost_mat[i][ori_u].energy-cost_mat[j][ori_v].energy;
+						double delt_time=cost_mat[i][u].runtime+cost_mat[j][v].runtime -cost_mat[i][ori_u].runtime-cost_mat[j][ori_v].runtime;
+						double new_energy=base.energy+delt_energy;
+						double new_time=base.runtime+delt_time;
+						double cost_ori=cost_func(base.runtime,base.energy/base.runtime);
+						double cost_new=cost_func(new_time,new_energy/new_time);
+						if(cost_new<cost_ori)
+						{
+							found++;
+							base.vec[i]=u;
+							base.vec[j]=v;
+							base.energy=new_energy;
+							base.runtime=new_time;
+						}
+					}
+			}
+		}
+		if(found==0) break;
+	}
+	
+	for(auto it=mp.begin();it!=mp.end();it++)
+	{
+		int idx=cnt++;
+		it->second.algo=cost_mat[idx][base.vec[idx]].algo;
+	}
+	runtime=base.runtime;
+	energy=base.energy;
+}
+void inner_search_re(conv_algo_mp_t & mp, double &runtime,double &energy)
 {
 	double alpha=1.000;
 	std:priority_queue<assn_t*,vector<assn_t*>,assn_compare> queue;
@@ -594,7 +667,7 @@ void inner_search0(conv_algo_mp_t & mp, double &runtime,double &energy)
 	}
 
 }
-void inner_search(conv_algo_mp_t & mp, double &runtime,double &energy)
+void inner_search_g1(conv_algo_mp_t & mp, double &runtime,double &energy)
 {
 	for(auto it=mp.begin();it!=mp.end();it++)
 	{
@@ -642,6 +715,15 @@ void inner_search(conv_algo_mp_t & mp, double &runtime,double &energy)
 		if(found_better==0) break;
 	}	
 	//printf("<best_cost=%f>\n",cost_func(runtime,energy/runtime));
+}
+void inner_search(conv_algo_mp_t & mp, double &runtime,double &energy)
+{
+	int a=params[9]+0.5;
+	if(a==0) inner_search_re(mp,runtime,energy);
+	else if(a==1) inner_search_g1(mp,runtime,energy);
+	else if(a==2) inner_search_g2(mp,runtime,energy);
+	else assert(0);
+	
 }
 float Graph::total_cost(void)
 {

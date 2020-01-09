@@ -644,7 +644,7 @@ inline double power_no_idle(double power)
 	//if(power<0) power=0;
 	return power;	
 }
-const int params_num=9;
+const int params_num=10;
 const int mute=1;
 extern int is_inception;
 extern int use_enlarge;
