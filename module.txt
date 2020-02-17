@@ -1,0 +1,2 @@
+module add cuda-toolkit/9.0.176
+module add cuDNN/10.0v7.4.2
