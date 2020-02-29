@@ -2,9 +2,9 @@
 
 Source code for paper "Energy-aware DNN Graph Optimization".
 
-All results are reproduce-able with this source code.
+All results are reproduce-able.
 
-Will be documented soon.
+Seek [Wiki](https://github.com/wangyu-/mlsys20_workshop/wiki) for details.
 
-##### note
-This repo is based on a fork of https://github.com/jiazhihao/metaflow_sysml19
+##### Note
+This repo is based on a fork of [MetaFlow](https://github.com/jiazhihao/metaflow_sysml19).
