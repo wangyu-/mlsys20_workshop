@@ -1,1 +1,1 @@
-time ./mf --dnn squeezenet --params "0,0,1|0.843,1,77.40|1.05,300|50"
+time ./mf --dnn squeezenet --params "0,0,1|0.843,1,77.40|1.05,300|50|1"
