@@ -293,9 +293,11 @@ void Graph::export_op(ofstream &file_stream, Op &op)
 {
   file_stream << op.guid << std::endl;
 
-  file_stream <<"<type>"<<op.ptr->type << std::endl;
+  //file_stream <<"<type>"<<op.ptr->type << std::endl;
+  file_stream <<op.ptr->type << std::endl;
 
-  std::string deps_string="<dep>";
+  //std::string deps_string="<dep>";
+  std::string deps_string="";
   std::set<Edge, EdgeCompare> inList = inEdges[op];
   std::set<Edge, EdgeCompare>::const_iterator it;
   int i = 0;
@@ -330,6 +332,7 @@ void Graph::export_op(ofstream &file_stream, Op &op)
       file_stream << conv->padH << ','; // 9
       file_stream << conv->padW << ','; // 10
       file_stream << conv->relu; // 11
+      file_stream <<",#"<<(int)conv->fwdAlgo;
       break;
     }
     case OpBase::OP_POOL2D_MAX:
