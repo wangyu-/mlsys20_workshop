@@ -46,6 +46,7 @@ def split_string_ints(string, delim):
   ints = []
   splits = string.split(delim)
   for s in splits:
+    s=s.replace('#','')
     ints.append(int(s))
   return ints
 
@@ -78,7 +79,7 @@ def make_conv2d_with_bias(input_tensor, filter_shape, strides, padding, bias_dim
 def create_input(line, operator_map):
   dims = split_string_ints(line, ',')
   input_shape = []
-  for i in xrange(0, len(dims)):
+  for i in range(0, len(dims)):
     if (dims[i] > 0):
       input_shape.append(dims[i])
   input_placeholder = tf.placeholder(tf.float32, shape=input_shape)
@@ -135,14 +136,14 @@ def parse_operator(line1, line2, line3, line4, operator_map, graph_outputs):
     name = "split_" + str(guid)
     splits = tf.split(operator_map[deps[0]], params, 1, name=name)
     rets = []
-    for i in xrange(0, len(splits)):
+    for i in range(0, len(splits)):
       operator_map[(guid, i)] = splits[i]
       rets.append((guid, i))
     return rets
   elif (op_type == OpType.OP_CONCAT):
     name = "concat_" + str(guid)
     dep_tensors = []
-    for i in xrange(0, len(deps)):
+    for i in range(0, len(deps)):
       dep_tensors.append(operator_map[deps[i]])
     concat = tf.concat(dep_tensors, 1, name=name)
     operator_map[(guid,0)] = concat
@@ -217,7 +218,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--xla", help="Whether to run with TensorFlowXLA optimizations", action="store_true")
 parser.add_argument("--graph_file", help="The file from which to load the graph")
 parser.add_argument("--print_tensorboard", help="Name of folder to output the tensorboard information")
-parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=5000)
+parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=20000)
 parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=1000)
 args = parser.parse_args()
 
