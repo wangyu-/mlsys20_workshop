@@ -1,2 +1,5 @@
 module add cuda-toolkit/9.0.176
 module add cuDNN/10.0v7.4.2
+module load anaconda3/5.0.1
+source activate tf_env
+export CUDA_VISIBLE_DEVICES=0

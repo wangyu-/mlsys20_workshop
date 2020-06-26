@@ -5,6 +5,7 @@ import time
 
 CONST_VALUE = .00000182
 GLOBAL_DATA_FORMAT = "NCHW"
+#GLOBAL_DATA_FORMAT = "NHWC"
 
 class PaddingType:
   SAME = 0
@@ -58,10 +59,17 @@ def split_string_int_pairs(string, delim1, delim2):
     pairs.append((int(pair_split[0]), int(pair_split[1])))
   return pairs
 
-def make_conv2d_with_bias(input_tensor, filter_shape, strides, padding, bias_dim, add_relu, name):
+force_algo=1
+def make_conv2d_with_bias(input_tensor, filter_shape, strides, padding, bias_dim, add_relu, name,algo):
+  #print(algo);
   weights_name = name + "_weights"
   bias_name = name + "_bias"
+  #conv_name = name + "_conv2d"+"_xagx"+str(algo)
   conv_name = name + "_conv2d"
+  if algo!=-1 and force_algo!=0:
+    conv_name = "AG"+str(algo)+"_"+conv_name
+  #conv_name = name + "_conv2d"
+  print("conv_name="+conv_name);
   bias_add_name = name + "_bias_add"
 
   weights = tf.constant(CONST_VALUE, shape=filter_shape, name=weights_name)
@@ -70,6 +78,7 @@ def make_conv2d_with_bias(input_tensor, filter_shape, strides, padding, bias_dim
   bias_add = tf.nn.bias_add(conv2d, bias, data_format=GLOBAL_DATA_FORMAT, name=bias_add_name)
 
   if (add_relu):
+    #print("add relu!!!");
     relu_name = name + "_relu"
     relu = tf.nn.relu(bias_add, name=relu_name)
     return relu
@@ -102,7 +111,13 @@ def parse_operator(line1, line2, line3, line4, operator_map, graph_outputs):
     else:
       padding = PaddingType.VALID
     name = "conv2d_" + str(guid)
-    conv = make_conv2d_with_bias(operator_map[deps[0]], filter_shape, strides, padding, params[4], params[11], name=name)
+    #print(len(params));
+    if len(params)<13:
+      params.append(-1)
+    conv = make_conv2d_with_bias(operator_map[deps[0]], filter_shape, strides, padding, params[4], params[11], name=name,algo=params[12])
+    #print("begin")
+    #print(conv)
+    #print("end")
     operator_map[(guid,0)] = conv
     return [(guid,0)]
   elif (op_type == OpType.OP_POOL2D_MAX or op_type == OpType.OP_POOL2D_AVG):
@@ -218,8 +233,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--xla", help="Whether to run with TensorFlowXLA optimizations", action="store_true")
 parser.add_argument("--graph_file", help="The file from which to load the graph")
 parser.add_argument("--print_tensorboard", help="Name of folder to output the tensorboard information")
-parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=20000)
-parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=5000)
+parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=30000)
+parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=10000)
 args = parser.parse_args()
 
 input_shape = []
@@ -265,11 +280,19 @@ output_nodes = []
 for graph_output in graph_outputs:
   output_nodes.append(operator_map[graph_output])
 
-config = tf.ConfigProto()
+no_opt = tf.OptimizerOptions(opt_level=tf.OptimizerOptions.L0,
+                             do_common_subexpression_elimination=False,
+                             do_function_inlining=False,
+                             do_constant_folding=False)
+
+config = tf.ConfigProto(graph_options=tf.GraphOptions(optimizer_options=no_opt))
+#config = tf.ConfigProto(intra_op_parallelism_threads=5,inter_op_parallelism_threads=5)
+
 if (args.xla):
   config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
 
 input_data = np.random.random_sample(input_shape)
+
 with tf.Session(config=config) as sess:
   if (args.print_tensorboard):
     writer = tf.summary.FileWriter(args.print_tensorboard, sess.graph)
