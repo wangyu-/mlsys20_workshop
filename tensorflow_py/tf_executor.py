@@ -233,8 +233,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--xla", help="Whether to run with TensorFlowXLA optimizations", action="store_true")
 parser.add_argument("--graph_file", help="The file from which to load the graph")
 parser.add_argument("--print_tensorboard", help="Name of folder to output the tensorboard information")
-parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=5000//2)
-parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=1000//2)
+parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=5000//10)
+parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=1000//10)
 args = parser.parse_args()
 
 input_shape = []
@@ -312,11 +312,26 @@ with tf.Session(config=config) as sess:
   print("===output_node===")
   #print(output_nodes)
   mylist=[]
+  outputs=""
   for i in output_nodes:
       print(i)
+      outputs+=","
+      outputs+=i.name
       mylist.append(i.name.split(":")[0])
+  mylist=list(set(mylist))
+  outputs=outputs[1:]
+
   print("Average time of the last " + str(args.iterations) + " iterations: " + str(avg) + " seconds")
   output_graph_def = tf.graph_util.convert_variables_to_constants(sess=sess,input_graph_def =sess.graph.as_graph_def(),output_node_names=mylist)
   with tf.gfile.GFile('graph.pb', "wb") as f:
           f.write(output_graph_def.SerializeToString())
+
+sess.close()
+name=args.graph_file.split("/")[-1]
+import os
+print(outputs)
+cmd="python -m tf2onnx.convert --input graph.pb --inputs %s --outputs %s --output %s.onnx"%("Placeholder:0",outputs,name)
+print("===tf2onnx_cmd===")
+print(cmd)
+#os.system(cmd)
 
