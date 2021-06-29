@@ -78,7 +78,7 @@ def make_conv2d_with_bias(input_tensor, filter_shape, strides, padding, bias_dim
   bias_add = tf.nn.bias_add(conv2d, bias, data_format=GLOBAL_DATA_FORMAT, name=bias_add_name)
 
   if (add_relu):
-    print("add relu!!!");
+    #print("add relu!!!");
     relu_name = name + "_relu"
     relu = tf.nn.relu(bias_add, name=relu_name)
     return relu
@@ -233,8 +233,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--xla", help="Whether to run with TensorFlowXLA optimizations", action="store_true")
 parser.add_argument("--graph_file", help="The file from which to load the graph")
 parser.add_argument("--print_tensorboard", help="Name of folder to output the tensorboard information")
-parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=5000)
-parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=1000)
+parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=5000//2)
+parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=1000//2)
 args = parser.parse_args()
 
 input_shape = []
@@ -280,6 +280,7 @@ output_nodes = []
 for graph_output in graph_outputs:
   output_nodes.append(operator_map[graph_output])
 
+
 no_opt = tf.OptimizerOptions(opt_level=tf.OptimizerOptions.L0,
                              do_common_subexpression_elimination=False,
                              do_function_inlining=False,
@@ -308,4 +309,14 @@ with tf.Session(config=config) as sess:
   for i in range(args.discard_iter, len(times)):
     total += times[i]
   avg = total / (args.iterations)
+  print("===output_node===")
+  #print(output_nodes)
+  mylist=[]
+  for i in output_nodes:
+      print(i)
+      mylist.append(i.name.split(":")[0])
   print("Average time of the last " + str(args.iterations) + " iterations: " + str(avg) + " seconds")
+  output_graph_def = tf.graph_util.convert_variables_to_constants(sess=sess,input_graph_def =sess.graph.as_graph_def(),output_node_names=mylist)
+  with tf.gfile.GFile('graph.pb', "wb") as f:
+          f.write(output_graph_def.SerializeToString())
+
