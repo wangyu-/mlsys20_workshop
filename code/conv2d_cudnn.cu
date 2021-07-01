@@ -35,6 +35,7 @@ void Conv2D::map(void)
   checkCUDNN(cudnnSetFilter4dDescriptor(filterDesc, CUDNN_DATA_FLOAT,
       CUDNN_TENSOR_NCHW, outputC, inputC, kernelH, kernelW));
   //checkCUDNN(cudnnSetConvolutionMathType(convDesc, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION));
+  //checkCUDNN(cudnnSetConvolutionMathType(convDesc, CUDNN_DEFAULT_MATH));
   checkCUDNN(cudnnSetConvolution2dDescriptor(convDesc, padH, padW,
       strideH, strideW, 1/*dilationH*/, 1/*dilationW*/,
       CUDNN_CROSS_CORRELATION, CUDNN_DATA_FLOAT));
