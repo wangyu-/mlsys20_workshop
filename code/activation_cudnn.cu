@@ -72,6 +72,7 @@ void Activation::forward(void)
 {
   const float alpha = 1.0f;
   const float beta = 0.0f;
+  printf("called!\n");
   checkCUDNN(cudnnActivationForward(model->dnn, actiDesc,
       &alpha, inputTensor, inputs[0].ptr,
       &beta, inputTensor, outputs[0].ptr));

@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 import time
 
-CONST_VALUE = .00000182
+CONST_VALUE = .000182
 GLOBAL_DATA_FORMAT = "NCHW"
 #GLOBAL_DATA_FORMAT = "NHWC"
 
@@ -72,8 +72,13 @@ def make_conv2d_with_bias(input_tensor, filter_shape, strides, padding, bias_dim
   #print("conv_name="+conv_name);
   bias_add_name = name + "_bias_add"
 
-  weights = tf.constant(CONST_VALUE, shape=filter_shape, name=weights_name)
-  bias = tf.constant(CONST_VALUE, shape=[bias_dim], name=bias_name)
+  tmp=np.random.normal(loc=0.0, scale=0.2, size=filter_shape).astype(np.float32)
+  weights = tf.constant(tmp, name=weights_name)
+  tmp=np.random.normal(loc=0.0, scale=0.2, size=[bias_dim]).astype(np.float32)
+  bias = tf.constant(tmp, name=bias_name)
+  #weights = tf.constant(CONST_VALUE, shape=filter_shape, name=weights_name)
+  #bias = tf.constant(CONST_VALUE, shape=[bias_dim], name=bias_name)
+
   conv2d = tf.nn.conv2d(input_tensor, weights, strides, get_padding_string(padding), data_format=GLOBAL_DATA_FORMAT, name=conv_name)
   bias_add = tf.nn.bias_add(conv2d, bias, data_format=GLOBAL_DATA_FORMAT, name=bias_add_name)
 
@@ -233,7 +238,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--xla", help="Whether to run with TensorFlowXLA optimizations", action="store_true")
 parser.add_argument("--graph_file", help="The file from which to load the graph")
 parser.add_argument("--print_tensorboard", help="Name of folder to output the tensorboard information")
-parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=5000//10)
+parser.add_argument("--iterations", help="How many iterations to average for timing (default 5000)", type=int, default=5000//20)
 parser.add_argument("--discard_iter", help="How many iterations to discard timing information during warm up (default 1000)", type=int, default=1000//10)
 args = parser.parse_args()
 

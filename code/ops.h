@@ -55,6 +55,16 @@ using namespace std;
 const size_t WORK_SPACE_SIZE = (size_t)2 * 1024 * 1024 * 1024; // 2GB
 typedef float DATATYPE;
 
+inline void my_mmset(void *p,int size,float value)
+{
+	float * tmp=(float *)malloc(size);
+	assert(size%4==0);
+	for(int i=0;i<size/4;i++)
+		tmp[i]=value;
+	cudaMemcpy(p,tmp,size,cudaMemcpyHostToDevice);
+	free(tmp);
+}
+
 class Model;
 class OpBase;
 struct Op {
@@ -240,6 +250,7 @@ public:
 #endif
 public:
 #ifdef USE_CUDNN
+  void *input2;
   cudnnTensorDescriptor_t inputTensor, biasTensor, outputTensor;
   cudnnFilterDescriptor_t filterDesc;
   cudnnActivationDescriptor_t actiDesc;

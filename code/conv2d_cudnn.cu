@@ -27,9 +27,16 @@ void Conv2D::map(void)
   int inputC = inputs[0].dim[1];
   int inputH = inputs[0].dim[2];
   int inputW = inputs[0].dim[3];
+  int inputSize=sizeof(float)*BATCH_SIZE*inputC*inputH*inputW;
+
+  //void *input2;
+  checkCUDA(cudaMalloc(&input2, inputSize));
+  my_mmset(input2,inputSize,0.0f);
+  input2=inputs[0].ptr;
+
   // set descriptors
-  checkCUDNN(cudnnSetTensor4dDescriptor(inputTensor, CUDNN_TENSOR_NCHW,
-      CUDNN_DATA_FLOAT, BATCH_SIZE, inputC, inputH, inputW));
+  checkCUDNN(cudnnSetTensor4dDescriptorEx(inputTensor,
+      CUDNN_DATA_FLOAT, BATCH_SIZE, inputC, inputH, inputW, inputC*inputH*inputW, inputH*inputW,inputW,1));
   checkCUDNN(cudnnSetTensor4dDescriptor(biasTensor, CUDNN_TENSOR_NCHW,
       CUDNN_DATA_FLOAT, 1, outputC, 1, 1));
   checkCUDNN(cudnnSetFilter4dDescriptor(filterDesc, CUDNN_DATA_FLOAT,
@@ -46,8 +53,8 @@ void Conv2D::map(void)
   assert(c == outputC);
   assert(outputs[0].dim[2] == h);
   assert(outputs[0].dim[3] == w);
-  checkCUDNN(cudnnSetTensor4dDescriptor(outputTensor, CUDNN_TENSOR_NCHW,
-      CUDNN_DATA_FLOAT, n, c, h, w));
+  checkCUDNN(cudnnSetTensor4dDescriptorEx(outputTensor, 
+      CUDNN_DATA_FLOAT, n, c, h, w, c*h*w,h*w,w,1));
   if (relu) {
     checkCUDNN(cudnnCreateActivationDescriptor(&actiDesc));
     checkCUDNN(cudnnSetActivationDescriptor(actiDesc, CUDNN_ACTIVATION_RELU,
@@ -61,7 +68,9 @@ void Conv2D::map(void)
   size_t outputSize = sizeof(DATATYPE) * BATCH_SIZE * outputC * outputH * outputW;
   size_t biasSize = sizeof(DATATYPE) * outputC;
   checkCUDA(cudaMalloc(&filterPtr, filterSize));
+  my_mmset(filterPtr,filterSize,0.1f);
   checkCUDA(cudaMalloc(&biasPtr, biasSize));
+  my_mmset(biasPtr,biasSize,0.1f);
   checkCUDA(cudaMalloc(&outputs[0].ptr, outputSize));
 }
 
@@ -83,17 +92,17 @@ void Conv2D::unmap(void)
 
 void Conv2D::forward(void)
 {
-  const float alpha = 1.0f;
+  const float alpha = 1.5f;
   const float beta = 0.0f;
   if (relu) {
     checkCUDNN(cudnnConvolutionBiasActivationForward(
-        model->dnn, &alpha, inputTensor, inputs[0].ptr, filterDesc, filterPtr,
+        model->dnn, &alpha, inputTensor, input2/*inputs[0].ptr*/, filterDesc, filterPtr,
         convDesc, fwdAlgo, model->workSpace, model->workSpaceSize,
         &beta, outputTensor, outputs[0].ptr, biasTensor, biasPtr, actiDesc,
         outputTensor, outputs[0].ptr));
   } else {
     checkCUDNN(cudnnConvolutionForward(
-        model->dnn, &alpha, inputTensor, inputs[0].ptr, filterDesc, filterPtr,
+        model->dnn, &alpha, inputTensor, input2/*inputs[0].ptr*/, filterDesc, filterPtr,
         convDesc, fwdAlgo, model->workSpace, model->workSpaceSize,
         &beta, outputTensor, outputs[0].ptr));
     checkCUDNN(cudnnAddTensor(model->dnn, &alpha, biasTensor, biasPtr,

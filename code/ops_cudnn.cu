@@ -71,14 +71,20 @@ float Model::measure_oplist_runtime(const std::vector<OpBase*>& opBaseList)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   double runtime=milliseconds/num_runs;
 
-  double power_time=measure_time/ (runtime);
+  double power_time=measure_time*4/ (runtime);
   
+  printf("<<<%f>>>",power_time);
+  cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync);
+  //checkCUDA(cudaDeviceSynchronize());
   start_check_power();
   double t=get_current_time();
   for (int times = 0; times < power_time; times++) {
     for (int i = 0; i < opBaseList.size(); i++)
+    {
       opBaseList[i]->forward();
+    }
   }
+  //checkCUDA(cudaDeviceSynchronize());
   t=get_current_time()-t;
   double power=finish_check_power();
   double new_run_time=t/power_time;

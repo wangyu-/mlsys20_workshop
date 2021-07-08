@@ -36,7 +36,7 @@ void Concat::forward(void)
     size_t size = sizeof(DATATYPE);
     for (int j = 0; j < inputs[i].numDim; j++)
       size *= inputs[i].dim[j];
-    if (needCopy[i])
+    if (0&&needCopy[i])
       checkCUDA(cudaMemcpyAsync(((char*)outputs[0].ptr) + offset,
                                 inputs[i].ptr, size,
                                 cudaMemcpyDeviceToDevice));
@@ -70,7 +70,7 @@ void Model::measure_concat_cost(Concat* concat)
   checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; i < REPEAT_TIMES; i++) {
     for (int j = 0; j < concat->numInputs; j++) {
-      if (concat->needCopy[j]) {
+      if (0&&concat->needCopy[j]) {
         size_t size = sizeof(DATATYPE);
         for (int k = 0; k < concat->inputs[j].numDim; k++)
           size *= concat->inputs[j].dim[k];
@@ -93,7 +93,7 @@ void Model::measure_concat_cost(Concat* concat)
   for (int i = 0; ; i++,times++) {
     if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
     for (int j = 0; j < concat->numInputs; j++) {
-      if (concat->needCopy[j]) {
+      if (0&&concat->needCopy[j]) {
         size_t size = sizeof(DATATYPE);
         for (int k = 0; k < concat->inputs[j].numDim; k++)
           size *= concat->inputs[j].dim[k];

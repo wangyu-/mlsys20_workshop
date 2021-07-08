@@ -60,8 +60,11 @@ void Element::forward(void)
 {
   const float alpha = 1.0f;
   const float beta = 0.0f;
+  if(0)
+  {
   checkCUDNN(cudnnOpTensor(model->dnn, opDesc, &alpha, inputTensor, inputs[0].ptr,
       &alpha, inputTensor, inputs[1].ptr, &beta, inputTensor, outputs[0].ptr));
+  }
 }
 
 void Model::measure_element_cost(Element* ele)
