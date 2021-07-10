@@ -58,12 +58,11 @@ void *check_power(void *)
 		{
 			int power=-1;
 			FILE *fp;
-			fp = popen("./measure_power.sh","r");
+			fp = fopen("./power_result","r");
 			assert(fp!=0);
-			char buf[256];
-			while(fgets(buf,sizeof(buf),fp) != NULL){
-				power = stoi(buf);
-			}
+			//double power=-1;
+			fscanf(fp,"%d",&power);
+			assert(power!=-1);
 			if(check_power_stop==1) break;
 			power_vec.push_back(power); 
 			//printf("<%d>\n",power);
