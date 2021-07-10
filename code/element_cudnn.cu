@@ -118,18 +118,37 @@ void Model::measure_element_cost(Element* ele)
   float milliseconds;
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
 //  double runtime=ele->runtime = milliseconds / REPEAT_TIMES;
+  {
+	  long times=0;
+	  double current_time=get_current_time();
+	  for (int i = 0; ; i++,times++) {
+		  if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>stress_time) break;
+		  checkCUDNN(cudnnOpTensor(dnn, opDesc, &alpha, inputTensor, inputPtr,
+					  &alpha, inputTensor, filterPtr, &beta, inputTensor, outputPtr));
+	  }
+	  checkCUDA(cudaDeviceSynchronize());
+  }
+
+  sleep(idle_time);
 
   long times=0; 
   double current_time=get_current_time();
-  double current_time2; 
   start_check_power();
+  checkCUDA(cudaDeviceSynchronize());
+  checkCUDA(cudaEventRecord(startEvent));
+
   for (int i = 0; ; i++,times++) {
-    if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
+    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     checkCUDNN(cudnnOpTensor(dnn, opDesc, &alpha, inputTensor, inputPtr,
         &alpha, inputTensor, filterPtr, &beta, inputTensor, outputPtr));
   }
+  checkCUDA(cudaEventRecord(endEvent));
+  checkCUDA(cudaEventSynchronize(endEvent));
+  float gpu_time;
+  cudaEventElapsedTime(&gpu_time, startEvent, endEvent);
+
   double power=finish_check_power();
-  double runtime=ele->runtime = (current_time2-current_time)/times;
+  double runtime=ele->runtime = gpu_time/times;
 
   printf("<measure>, %s, ",key.c_str());
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);

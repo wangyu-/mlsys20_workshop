@@ -148,12 +148,32 @@ void Model::measure_pool2d_cost(Pool2D* pool)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   //double runtime=pool->runtime = milliseconds / REPEAT_TIMES;
 
+  {
+	  long times=0;
+	  double current_time=get_current_time();
+	  for (int i = 0; ; i++,times++) {
+		  if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>stress_time) break;
+		  checkCUDNN(cudnnPoolingForward(dnn, poolDesc,
+					  &alpha, inputTensor, inputPtr,
+					  &beta, outputTensor, outputPtr));
+		  if (pool->relu) {
+			  checkCUDNN(cudnnActivationForward(dnn, actiDesc,
+						  &alpha, outputTensor, outputPtr,
+						  &beta, outputTensor, outputPtr));
+		  }
+	  }
+	  checkCUDA(cudaDeviceSynchronize());
+  }
+
+  sleep(idle_time);
+
   long times=0;
   double current_time=get_current_time();
-  double current_time2;
   start_check_power();
+  checkCUDA(cudaDeviceSynchronize());
+  checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; ; i++,times++) {
-    if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
+    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     checkCUDNN(cudnnPoolingForward(dnn, poolDesc,
         &alpha, inputTensor, inputPtr,
         &beta, outputTensor, outputPtr));
@@ -163,8 +183,13 @@ void Model::measure_pool2d_cost(Pool2D* pool)
           &beta, outputTensor, outputPtr));
     }
   }
+  checkCUDA(cudaEventRecord(endEvent));
+  checkCUDA(cudaEventSynchronize(endEvent));
+  float gpu_time;
+  cudaEventElapsedTime(&gpu_time, startEvent, endEvent);
+
   double power=finish_check_power();
-  double runtime=pool->runtime = (current_time2-current_time)/times;
+  double runtime=pool->runtime = (gpu_time)/times;
 
   printf("<measure>, %s, ",key.c_str());
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);

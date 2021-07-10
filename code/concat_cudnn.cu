@@ -85,13 +85,33 @@ void Model::measure_concat_cost(Concat* concat)
   cudaEventElapsedTime(&milliseconds, startEvent, endEvent);
   //double runtime=concat->runtime = milliseconds / REPEAT_TIMES;
 
+  {
+	  long times=0;
+	  double current_time=get_current_time();
+	  for (int i = 0; ; i++,times++) {
+		  if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>stress_time) break;
+		  for (int j = 0; j < concat->numInputs; j++) {
+			  if (concat->needCopy[j]) {
+				  size_t size = sizeof(DATATYPE);
+				  for (int k = 0; k < concat->inputs[j].numDim; k++)
+					  size *= concat->inputs[j].dim[k];
+				  checkCUDA(cudaMemcpyAsync(outputPtr, inputPtr, size,
+							  cudaMemcpyDeviceToDevice));
+			  }
+		  }
+	  }
+	  checkCUDA(cudaDeviceSynchronize());
+  }
+
+  sleep(idle_time);
 
   long times=0;
   double current_time=get_current_time();
-  double current_time2;
   start_check_power();
+  checkCUDA(cudaDeviceSynchronize());
+  checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; ; i++,times++) {
-    if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
+    if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     for (int j = 0; j < concat->numInputs; j++) {
       if (concat->needCopy[j]) {
         size_t size = sizeof(DATATYPE);
@@ -102,8 +122,13 @@ void Model::measure_concat_cost(Concat* concat)
       }
     }
   }
+  checkCUDA(cudaEventRecord(endEvent));
+  checkCUDA(cudaEventSynchronize(endEvent));
+  float gpu_time;
+  cudaEventElapsedTime(&gpu_time, startEvent, endEvent);
+
   double power=finish_check_power();
-  double runtime=concat->runtime = (current_time2-current_time)/times;
+  double runtime=concat->runtime = gpu_time/times;
    
   printf("<measure>, %s, ",key.c_str());
   printf("runtime=%f power=%f energy=%f\n",runtime,power,power*runtime);

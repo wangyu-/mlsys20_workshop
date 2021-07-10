@@ -13,16 +13,16 @@
 } while(0)
 
 #define checkCUDNN(status) do {                                        \
-    std::stringstream _error;                                          \
     if (status != CUDNN_STATUS_SUCCESS) {                              \
+    std::stringstream _error;                                          \
       _error << "CUDNN failure: " << cudnnGetErrorString(status);      \
       FatalError(_error.str());                                        \
     }                                                                  \
 } while(0)
 
 #define checkCUDA(status) do {                                         \
-    std::stringstream _error;                                          \
     if (status != 0) {                                                 \
+    std::stringstream _error;                                          \
       _error << "Cuda failure: " << status;                            \
       FatalError(_error.str());                                        \
     }                                                                  \

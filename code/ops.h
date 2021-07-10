@@ -43,6 +43,7 @@ using namespace nvinfer1;
 #include <fstream>
 #include <string.h>
 using namespace std;
+#include <unistd.h>
 
 #define MAX_DIM 4
 #define MAX_NUM_INPUTS 6
@@ -608,11 +609,13 @@ inline long long get_current_time()
 	clock_gettime(CLOCK_MONOTONIC, &tmp_time);
 	return tmp_time.tv_sec*1000ll+tmp_time.tv_nsec/(1000*1000l);
 }
-#define TIME_BEFORE_MEASURE 4
+#define TIME_BEFORE_MEASURE 1
 
 #define CHECK_TIME_PERIOD 500
 
-const int measure_time=6*1000;
+const int idle_time=0; //sec
+const int stress_time=3*1000;
+const int measure_time=2*1000;
 extern int about_to_exit;
 
 struct value_t

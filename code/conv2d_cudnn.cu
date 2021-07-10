@@ -165,9 +165,11 @@ void Model::measure_conv2d_cost(Conv2D* conv)
      begin=0;
   }
 
+  //printf("---begin---\n");
   for(int idx=begin;idx>=0;idx--)
 {
   if(int(perfResults[idx].status)!=0) continue;
+  assert((int)perfResults[idx].mathType==0);
   cudnnConvolutionFwdAlgo_t current_algo=perfResults[idx].algo;
   //printf("<<<%d>>>\n",int(perfResults[idx].status));
   //conv->fwdAlgo = (cudnnConvolutionFwdAlgo_t)2;
@@ -217,12 +219,37 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   //double runtime=conv->runtime = milliseconds / REPEAT_TIMES;
   
   {
+	  long times=0;
+	  double current_time=get_current_time();
+	  for (int i = 0; ; i++,times++) {
+		  if(i%CHECK_TIME_PERIOD==0&&(get_current_time())-current_time>stress_time) break;
+		  if (conv->relu) {
+			  checkCUDNN(cudnnConvolutionBiasActivationForward(
+						  dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
+						  convDesc, current_algo, workSpace, workSpaceSize,
+						  &beta, outputTensor, outputPtr, biasTensor, biasPtr, actiDesc,
+						  outputTensor, outputPtr));
+		  } else {
+			  checkCUDNN(cudnnConvolutionForward(
+						  dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
+						  convDesc, current_algo, workSpace, workSpaceSize,
+						  &beta, outputTensor, outputPtr));
+			  checkCUDNN(cudnnAddTensor(dnn, &alpha, biasTensor, biasPtr,
+						  &alpha, outputTensor, outputPtr));
+		  }
+	  }
+	  checkCUDA(cudaDeviceSynchronize());
+  }
+  {
+  sleep(idle_time);
   long times=0;
   double current_time=get_current_time();
-  double current_time2;
   start_check_power();
+
+  checkCUDA(cudaDeviceSynchronize());
+  checkCUDA(cudaEventRecord(startEvent));
   for (int i = 0; ; i++,times++) {
-    if(i%CHECK_TIME_PERIOD==0&&(current_time2=get_current_time())-current_time>measure_time) break;
+    if(i%CHECK_TIME_PERIOD==0&&(get_current_time())-current_time>measure_time) break;
     if (conv->relu) {
       checkCUDNN(cudnnConvolutionBiasActivationForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
@@ -238,8 +265,13 @@ void Model::measure_conv2d_cost(Conv2D* conv)
           &alpha, outputTensor, outputPtr));
     }
   }
+  checkCUDA(cudaEventRecord(endEvent));
+  checkCUDA(cudaEventSynchronize(endEvent));
+  float gpu_time;
+  cudaEventElapsedTime(&gpu_time, startEvent, endEvent);
+
   power=finish_check_power();
-  runtime= (current_time2-current_time)/times;
+  runtime= gpu_time/times;
   energy=power*runtime;
 
   printf("<measure>, %s, ",key.c_str());
@@ -272,5 +304,6 @@ void Model::measure_conv2d_cost(Conv2D* conv)
 	  conv->fwdAlgo=current_algo;
   }
 }
+  //printf("---end---\n");
 }
 
