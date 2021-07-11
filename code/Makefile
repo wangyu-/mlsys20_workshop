@@ -4,7 +4,7 @@ SRC_TRT = $(SRC_GPU)
 SRC_CPU = $(SRC_COM) $(wildcard *_mkl.cc)
 
 CXXFLAGS_COM = -std=c++11
-CXXFLAGS_GPU = $(CXXFLAGS_COM) -DUSE_CUDNN -O2 -arch=compute_70 -code=sm_70 -g 
+CXXFLAGS_GPU = $(CXXFLAGS_COM) -DUSE_CUDNN -O2 -arch=compute_70 -code=sm_70 -g  -I/home/yw7/cuda/include/
 #--default-stream per-thread
 CXXFLAGS_CPU = $(CXXFLAGS_COM) -DUSE_MKL -O3 -march=native -I$(MKLPATH)/include
 CXXFLAGS_TRT = $(CXXFLAGS_GPU) -DTRT -I$(TRTPATH)/include

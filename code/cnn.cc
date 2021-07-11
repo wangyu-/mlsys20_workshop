@@ -56,12 +56,12 @@ void *check_power(void *)
 
 		while(1)
 		{
-			int power=-1;
+			double power=-1;
 			FILE *fp;
 			fp = fopen("./power_result","r");
 			assert(fp!=0);
 			//double power=-1;
-			fscanf(fp,"%d",&power);
+			fscanf(fp,"%lf",&power);
 			assert(power!=-1);
 			if(check_power_stop==1) break;
 			power_vec.push_back(power); 

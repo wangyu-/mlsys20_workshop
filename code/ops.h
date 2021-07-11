@@ -615,7 +615,7 @@ inline long long get_current_time()
 
 const int idle_time=0; //sec
 const int stress_time=3*1000;
-const int measure_time=2*1000;
+const int measure_time=4*1000;
 extern int about_to_exit;
 
 struct value_t
