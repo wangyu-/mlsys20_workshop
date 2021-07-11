@@ -155,7 +155,7 @@ void Model::measure_pool2d_cost(Pool2D* pool)
 		  if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>stress_time) break;
 		  checkCUDNN(cudnnPoolingForward(dnn, poolDesc,
 					  &alpha, inputTensor, inputPtr,
-					  &beta, outputTensor, outputPtr));
+					  &beta, outputTensor, outputPtr +OLD_SIZE*(i%MOD) ));
 		  if (pool->relu) {
 			  checkCUDNN(cudnnActivationForward(dnn, actiDesc,
 						  &alpha, outputTensor, outputPtr,
@@ -176,7 +176,7 @@ void Model::measure_pool2d_cost(Pool2D* pool)
     if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     checkCUDNN(cudnnPoolingForward(dnn, poolDesc,
         &alpha, inputTensor, inputPtr,
-        &beta, outputTensor, outputPtr));
+        &beta, outputTensor, outputPtr +OLD_SIZE*(i%MOD) ));
     if (pool->relu) {
       checkCUDNN(cudnnActivationForward(dnn, actiDesc,
           &alpha, outputTensor, outputPtr,

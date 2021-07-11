@@ -171,6 +171,8 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   if(int(perfResults[idx].status)!=0) continue;
   assert((int)perfResults[idx].mathType==0);
   cudnnConvolutionFwdAlgo_t current_algo=perfResults[idx].algo;
+  int algo=current_algo;
+  if(algo!=0&&algo!=1&&algo!=5&&algo!=6) continue;
   //printf("<<<%d>>>\n",int(perfResults[idx].status));
   //conv->fwdAlgo = (cudnnConvolutionFwdAlgo_t)2;
  
@@ -225,10 +227,10 @@ void Model::measure_conv2d_cost(Conv2D* conv)
 		  if(i%CHECK_TIME_PERIOD==0&&(get_current_time())-current_time>stress_time) break;
 		  if (conv->relu) {
 			  checkCUDNN(cudnnConvolutionBiasActivationForward(
-						  dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
+						  dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr+OLD_SIZE*(i%MOD),
 						  convDesc, current_algo, workSpace, workSpaceSize,
-						  &beta, outputTensor, outputPtr, biasTensor, biasPtr, actiDesc,
-						  outputTensor, outputPtr));
+						  &beta, outputTensor, outputPtr+OLD_SIZE*(i%MOD), biasTensor, biasPtr+OLD_SIZE*(i%MOD), actiDesc,
+						  outputTensor, outputPtr+OLD_SIZE*(i%MOD)));
 		  } else {
 			  checkCUDNN(cudnnConvolutionForward(
 						  dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
@@ -252,10 +254,10 @@ void Model::measure_conv2d_cost(Conv2D* conv)
     if(i%CHECK_TIME_PERIOD==0&&(get_current_time())-current_time>measure_time) break;
     if (conv->relu) {
       checkCUDNN(cudnnConvolutionBiasActivationForward(
-          dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,
+          dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr+OLD_SIZE*(i%MOD),
           convDesc, current_algo, workSpace, workSpaceSize,
-          &beta, outputTensor, outputPtr, biasTensor, biasPtr, actiDesc,
-          outputTensor, outputPtr));
+          &beta, outputTensor, outputPtr+OLD_SIZE*(i%MOD), biasTensor, biasPtr+OLD_SIZE*(i%MOD), actiDesc,
+          outputTensor, outputPtr+OLD_SIZE*(i%MOD)));
     } else {
       checkCUDNN(cudnnConvolutionForward(
           dnn, &alpha, inputTensor, inputPtr, filterDesc, filterPtr,

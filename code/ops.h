@@ -49,7 +49,9 @@ using namespace std;
 #define MAX_NUM_INPUTS 6
 #define MAX_NUM_OUTPUTS 6
 #define BATCH_SIZE 1
-#define MAX_TENSOR_SIZE 128 * 1024 * 1024 // 128MB
+#define MOD 8
+#define OLD_SIZE (128 * 1024 * 1024)// 128MB
+#define MAX_TENSOR_SIZE (128 * 1024 * 1024 *MOD)// 128MB
 #define REPEAT_TIMES 500
 #define CONCAT_KEY_LENGTH (MAX_NUM_INPUTS + 5)
 #define SPLIT_KEY_LENGTH (MAX_NUM_OUTPUTS + 4)
@@ -614,8 +616,8 @@ inline long long get_current_time()
 #define CHECK_TIME_PERIOD 500
 
 const int idle_time=0; //sec
-const int stress_time=3*1000;
-const int measure_time=4*1000;
+const int stress_time=2*1000;
+const int measure_time=3*1000;
 extern int about_to_exit;
 
 struct value_t

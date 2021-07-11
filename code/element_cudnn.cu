@@ -124,7 +124,7 @@ void Model::measure_element_cost(Element* ele)
 	  for (int i = 0; ; i++,times++) {
 		  if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>stress_time) break;
 		  checkCUDNN(cudnnOpTensor(dnn, opDesc, &alpha, inputTensor, inputPtr,
-					  &alpha, inputTensor, filterPtr, &beta, inputTensor, outputPtr));
+					  &alpha, inputTensor, filterPtr+OLD_SIZE*(i%MOD), &beta, inputTensor, outputPtr+OLD_SIZE*(i%MOD)));
 	  }
 	  checkCUDA(cudaDeviceSynchronize());
   }
@@ -140,7 +140,7 @@ void Model::measure_element_cost(Element* ele)
   for (int i = 0; ; i++,times++) {
     if(i%CHECK_TIME_PERIOD==0&&get_current_time()-current_time>measure_time) break;
     checkCUDNN(cudnnOpTensor(dnn, opDesc, &alpha, inputTensor, inputPtr,
-        &alpha, inputTensor, filterPtr, &beta, inputTensor, outputPtr));
+        &alpha, inputTensor, filterPtr+OLD_SIZE*(i%MOD), &beta, inputTensor, outputPtr+OLD_SIZE*(i%MOD)));
   }
   checkCUDA(cudaEventRecord(endEvent));
   checkCUDA(cudaEventSynchronize(endEvent));
