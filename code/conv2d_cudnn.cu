@@ -112,8 +112,10 @@ void Model::measure_conv2d_cost(Conv2D* conv)
   int outputC = conv->outputs[0].dim[1];
   int outputH = conv->outputs[0].dim[2];
   int outputW = conv->outputs[0].dim[3];
-  checkCUDNN(cudnnSetTensor4dDescriptor(inputTensor, CUDNN_TENSOR_NCHW,
+  checkCUDNN(cudnnSetTensor4dDescriptor(inputTensor,CUDNN_TENSOR_NCHW,
       CUDNN_DATA_FLOAT, BATCH_SIZE, inputC, inputH, inputW));
+  //checkCUDNN(cudnnSetTensor4dDescriptorEx(inputTensor,
+     // CUDNN_DATA_FLOAT, BATCH_SIZE, inputC, inputH, inputW,16*inputC*inputH*inputW ,inputH*inputW,inputW,1));
   checkCUDNN(cudnnSetTensor4dDescriptor(biasTensor, CUDNN_TENSOR_NCHW,
       CUDNN_DATA_FLOAT, 1, outputC, 1, 1));
   checkCUDNN(cudnnSetFilter4dDescriptor(filterDesc, CUDNN_DATA_FLOAT,
