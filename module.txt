@@ -6,7 +6,7 @@
 #module add cudnn/7.6.5.32-10.1-linux-x64-gcc/8.3.1
 #module add cuda/10.1.243-gcc/8.3.1
 #module add cuda/10.0.130-gcc/7.1.0
-cudnn/7.6.5.32-10.2-linux-x64-gcc/8.3.1-cuda10_2
+module add cudnn/7.6.5.32-10.2-linux-x64-gcc/8.3.1-cuda10_2
 module add gcc/7.1.0
 module add anaconda3/5.0.1-gcc/8.3.1
 module add protobuf/3.11.2-gcc/7.1.0
